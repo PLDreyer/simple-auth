@@ -14,7 +14,11 @@
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
-    "paths": {}
+    "paths": {
+      "@simple-auth/core": ["libs/core/src/index.ts"],
+      "@simple-auth/nestjs": ["libs/nestjs/src/index.ts"],
+      "@simple-auth/web": ["libs/web/src/index.ts"]
+    }
   },
   "exclude": ["node_modules", "tmp"]
 }
