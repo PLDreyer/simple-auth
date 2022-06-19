@@ -1,6 +1,14 @@
 import {Request, Response} from "express";
+import {AuthError} from "./auth.exceptions";
 
-export type AuthOptions<U> = {
+declare global {
+  namespace Express {
+    // eslint-disable-next-line @typescript-eslint/no-empty-interface
+    interface User {}
+  }
+}
+
+export type AuthOptions = {
   apiKey?: {
     header?: {
       names?: Array<string>;
@@ -11,24 +19,22 @@ export type AuthOptions<U> = {
     body?: {
       names?: Array<string>;
     };
-    find: (key: string) => Promise<U>;
-    error?: (error: string) => Promise<void>;
+    find: (key: string) => Promise<Express.User | null>;
   };
   login: {
     usernameField?: string;
     passwordField?: string;
-    find: (username: string, password: string) => Promise<U>;
+    find: (username: string, password: string) => Promise<Express.User | null>;
     customResponse?: (req: Request) => Promise<unknown>,
-    error?: (error: string) => Promise<void>;
   };
   anonymous?: {
-    find: (id: string) => Promise<U>;
+    find: (id: string) => Promise<Express.User | null>;
     save: (id: string) => Promise<void>;
-    error?: (error: string) => Promise<void>;
   };
   session?: {
-    find: (id: string) => Promise<U>;
+    find: (id: string) => Promise<Express.User | null>;
     save: (id: string) => Promise<void>;
+    delete: (id: string) => Promise<void>;
     cookie?: {
       name?: string;
       secure?: boolean;
@@ -37,16 +43,15 @@ export type AuthOptions<U> = {
       domain?: string;
       path?: string;
     };
-    single?: boolean;
     lifetime?: number;
     encrypted?: boolean;
     secret: string;
-    customResponse?: (req: Request, res: Response, accessToken: string) => Promise<unknown>,
-    error?: (error: string) => Promise<void>;
+    customResponse?: (req: Request, res: Response, accessToken: string, refreshToken: string) => Promise<unknown>,
   };
   refresh?: {
-    find: (id: string) => Promise<boolean>;
+    find: (id: string) => Promise<Express.User | null>;
     save: (id: string) => Promise<void>;
+    delete: (id: string) => Promise<void>;
     cookie?: {
       name?: string;
       secure?: boolean;
@@ -58,6 +63,9 @@ export type AuthOptions<U> = {
     lifetime?: number;
     secret: string;
     customResponse?: (req: Request, res: Response, refreshToken: string) => Promise<unknown>,
-    error?: (error: string) => Promise<void>;
   };
+  parser?: {
+    cookieSecret?: string | Array<string>;
+  };
+  error?: (error: AuthError) => Promise<void>;
 }

@@ -6,9 +6,20 @@ import {UsersModule} from "./users/users.module";
 import configuration from '../config/config';
 import {UsersService} from "./users/users.service";
 import {AuthModule} from "@simple-auth/nestjs";
-import {AuthOptions} from "@simple-auth/core";
+import {AuthError, AuthOptions} from "@simple-auth/core";
 
-type User = {};
+declare global {
+  namespace Express {
+    // tslint:disable-next-line:no-empty-interface
+    interface AuthInfo {
+    }
+
+    // tslint:disable-next-line:no-empty-interface
+    interface User {
+      name: string;
+    }
+  }
+}
 
 @Module({
   imports: [
@@ -21,12 +32,12 @@ type User = {};
       isGlobal: true,
     }),
     UsersModule,
-    AuthModule.forRootAsync<User>({
+    AuthModule.forRootAsync({
       imports: [UsersModule],
       useFactory: async (
         usersService: UsersService,
         configService: ConfigService
-      ): Promise<AuthOptions<User>> => {
+      ): Promise<AuthOptions> => {
         return {
           apiKey: {
             header: {
@@ -38,15 +49,15 @@ type User = {};
             body: {
               names: ["key"]
             },
-            async find(key: string): Promise<User> {
-              return usersService.findOneApiKey<User>(key);
+            async find(key: string): Promise<Express.User | null> {
+              return usersService.findOneApiKey(key);
             }
           },
           login: {
             usernameField: "email",
             passwordField: "password",
-            async find(username: string, password: string): Promise<User> {
-              return usersService.findOneUser<User>(username, password);
+            async find(username: string, password: string): Promise<Express.User> {
+              return usersService.findOneUser(username, password);
             }
           },
           anonymous: {
@@ -63,13 +74,15 @@ type User = {};
             },
             secret: "secret_session",
             encrypted: true,
-            single: false,
             lifetime: 15 * 60, // 15 minutes
             async save(id: string): Promise<void> {
               return usersService.saveOneSession(id);
             },
-            async find(id: string): Promise<User> {
-              return usersService.findOneSession<User>(id);
+            async find(id: string): Promise<Express.User> {
+              return usersService.findOneSession(id);
+            },
+            async delete(id: string): Promise<void> {
+              return usersService.deleteOneSession(id);
             }
           },
           refresh: {
@@ -81,10 +94,17 @@ type User = {};
             async save(id: string): Promise<void> {
               return usersService.saveOneRefresh(id);
             },
-            async find(id: string): Promise<boolean> {
+            async find(id: string): Promise<Express.User> {
               return usersService.findOneRefresh(id);
+            },
+            async delete(id: string): Promise<void> {
+              return usersService.deleteOneRefresh(id);
             }
           },
+          parser: {
+            cookieSecret: "secret",
+          },
+          error: async (error: AuthError) => {},
         }
       },
       inject: [UsersService, ConfigService],

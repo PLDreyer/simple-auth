@@ -10,7 +10,7 @@ import {AuthOptions} from "@simple-auth/core";
 export class RefreshStrategy extends PassportStrategy(Strategy, 'refresh') {
   constructor(
     @Inject(AUTH_MODULE_OPTIONS)
-    private readonly authOptions: AuthOptions<unknown>,
+    private readonly authOptions: AuthOptions,
     private readonly authService: AuthService,
   ) {
     super({

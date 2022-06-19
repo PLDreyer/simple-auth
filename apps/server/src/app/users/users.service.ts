@@ -2,16 +2,21 @@ import {Injectable} from "@nestjs/common";
 
 @Injectable()
 export class UsersService {
-  async findOneApiKey<U>(key: string): Promise<U> {
-    // TODO
-    return {} as U;
+  async findOneApiKey(key: string): Promise<Express.User | null> {
+    if(key == "123") return {
+      id: "uuid",
+      name: "test"
+    };
+
+    return null;
   }
 
-  async findOneUser<U>(username: string, password?: string): Promise<U> {
+  async findOneUser(username: string, password?: string): Promise<Express.User> {
     if(!password) {
       return {
-        username,
-      } as unknown as U;
+        id: "uuid",
+        name: username,
+      }
     }
 
     console.log("username: ", username);
@@ -19,34 +24,48 @@ export class UsersService {
 
     if(username == "maxmustermann" && password == "1234") {
       return {
-        username,
-      } as unknown as U;
+        id: "uuid",
+        name: username,
+      }
     }
     // TODO
     return null;
   }
 
-  async findOneSession<U>(id: string): Promise<U> {
+  async findOneSession(id: string): Promise<Express.User> {
     // TODO
-    return {} as U;
+    return {
+      id: "uuid",
+      name: "test"
+    }
   }
 
-  async saveOneSession(id: string): Promise<void> {
+  async saveOneSession(id: string): Promise<void> {}
 
-  }
+  async deleteOneSession(id: string): Promise<void> {}
 
-  async findOneRefresh(id: string): Promise<boolean> {
+  async findOneRefresh(id: string): Promise<Express.User> {
     // TODO
-    return true;
+    return {
+      id: "uuid",
+      name: "test"
+    }
   }
 
   async saveOneRefresh(id: string): Promise<void> {
 
   }
 
-  async findOneAnonymous<U>(id: string): Promise<U> {
+  async deleteOneRefresh(id: string): Promise<void> {
+
+  }
+
+  async findOneAnonymous<U>(id: string): Promise<Express.User> {
     // TODO
-    return {} as U;
+    return {
+      id: "uuid",
+      name: "test"
+    }
   }
 
   async registerAnonymousUser() {

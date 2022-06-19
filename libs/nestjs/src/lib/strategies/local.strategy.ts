@@ -10,7 +10,7 @@ export class LocalStrategy extends PassportStrategy(Strategy, 'local') {
   constructor(
     private readonly authService: AuthService,
     @Inject(AUTH_MODULE_OPTIONS)
-    private readonly authOptions: AuthOptions<unknown>,
+    private readonly authOptions: AuthOptions,
     ) {
     super({
       usernameField: authOptions.login.usernameField,

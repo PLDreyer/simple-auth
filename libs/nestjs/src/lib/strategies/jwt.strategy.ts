@@ -9,14 +9,15 @@ import {AuthOptions} from "@simple-auth/core";
 export class JwtStrategy extends PassportStrategy(Strategy,'jwt') {
   constructor(
     @Inject(AUTH_MODULE_OPTIONS)
-    private readonly authOptions: AuthOptions<any>,
+    private readonly authOptions: AuthOptions,
   ){
     super({
       ignoreExpiration: false,
       secretOrKey: authOptions.session.secret,
       jwtFromRequest:ExtractJwt.fromExtractors([(request:Request) => {
+        console.log("cookies: ", JSON.stringify(request.cookies, null, 2))
         let data = request?.cookies[authOptions.session.cookie.name];
-
+        console.log("data: ", data);
         if(!data){
           return null;
         }

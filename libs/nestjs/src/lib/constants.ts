@@ -8,6 +8,8 @@ export const cookieConstants = {
   name: 'auth-token'
 }
 
+export const AUTH_MODULE_OPTIONS_USER = Symbol("AUTH_MODULE_OPTIONS_USER");
+
 export const AUTH_MODULE_OPTIONS = Symbol("AUTH_MODULE_OPTIONS");
 
 export const AUTH_DATABASE_METHODS = Symbol("AUTH_DATABASE_OPTIONS");
