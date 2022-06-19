@@ -12,22 +12,15 @@ export class KeyAuthGuard extends AuthGuard("key") {
     super();
   }
 
-  handleRequest(err: unknown, user: unknown, info: AuthError, ctx: ExecutionContext, status: unknown) {
+  public handleRequest(error: unknown, user: Express.User, info: AuthError, ctx: ExecutionContext, status: unknown): any{
     // You can throw an exception based on either "info" or "err" arguments
-    console.log("this.authOptions: ", this.authOptions)
-    console.log("err: ", err);
-    console.log("user: ", user);
+    console.log("error: ", error);
     console.log("info: ", info);
-    // console.log("ctx: ", ctx);
-    console.log("status: ", status);
-    if (err) {
-      throw err;
-    }
-
-    if (info) {
+    if (error || info) {
       if (this.authOptions.error) return this.authOptions.error(info);
-
+      throw info;
     }
-    return user as any;
+
+    return user as any
   }
 }

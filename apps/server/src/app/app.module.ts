@@ -71,12 +71,16 @@ declare global {
           session: {
             cookie: {
               name: "session",
+              secure: false,
+              path: "/",
+              httpOnly: false,
+              signed: false,
             },
             secret: "secret_session",
             encrypted: true,
             lifetime: 15 * 60, // 15 minutes
-            async save(id: string): Promise<void> {
-              return usersService.saveOneSession(id);
+            async save(id: string, user: Express.User): Promise<void> {
+              return usersService.saveOneSession(id, user);
             },
             async find(id: string): Promise<Express.User> {
               return usersService.findOneSession(id);
@@ -88,11 +92,15 @@ declare global {
           refresh: {
             cookie: {
               name: "refresh",
+              secure: false,
+              path: "/",
+              httpOnly: false,
+              signed: false,
             },
             secret: "secret_refresh",
             lifetime: 14 * 24 * 60 * 60, // 14 days
-            async save(id: string): Promise<void> {
-              return usersService.saveOneRefresh(id);
+            async save(id: string, user: Express.User): Promise<void> {
+              return usersService.saveOneRefresh(id, user);
             },
             async find(id: string): Promise<Express.User> {
               return usersService.findOneRefresh(id);
@@ -104,7 +112,9 @@ declare global {
           parser: {
             cookieSecret: "secret",
           },
-          error: async (error: AuthError) => {},
+          error: async (error: AuthError) => {
+            throw error;
+          },
         }
       },
       inject: [UsersService, ConfigService],

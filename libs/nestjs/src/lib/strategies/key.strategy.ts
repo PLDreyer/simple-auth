@@ -1,8 +1,14 @@
-import {Inject, Injectable, UnauthorizedException} from "@nestjs/common";
+import {Inject, Injectable} from "@nestjs/common";
 import {Strategy} from "passport-custom";
 import {PassportStrategy} from "@nestjs/passport";
 import {Request} from "express";
-import {AuthOptions, INVALID_API_KEY, InvalidApiKey, MissingApiKey} from "@simple-auth/core";
+import {
+  AuthOptions,
+  InvalidApiKey,
+  MalformedApiKey,
+  MissingApiKey,
+  MultipleApiKeysFound
+} from "@simple-auth/core";
 import {AUTH_MODULE_OPTIONS} from "../constants";
 
 @Injectable()
@@ -15,7 +21,6 @@ export class KeyStrategy extends PassportStrategy(Strategy,'key') {
   }
 
   /**
-   *
    * @param req
    * @param done
    * @returns user, info, status
@@ -36,7 +41,7 @@ export class KeyStrategy extends PassportStrategy(Strategy,'key') {
     for (const name of header.names) {
       const headerValue = req.header(name);
 
-      if(headerValue && headerValue.length > 1) throw new Error("Found multiple api keys for header");
+      if(headerValue && headerValue.length > 1) throw new MultipleApiKeysFound();
 
       if(headerValue) return headerValue[0];
     }
@@ -44,8 +49,8 @@ export class KeyStrategy extends PassportStrategy(Strategy,'key') {
     for (const name of query.names) {
       const queryValue = req.query[name];
 
-      if(Array.isArray(queryValue)) throw new Error("Found multiple api keys for query");
-      if(typeof queryValue === "object" || queryValue === null) throw new Error("Found object for api key");
+      if(Array.isArray(queryValue)) throw new MultipleApiKeysFound();
+      if(typeof queryValue === "object" || queryValue === null) throw new MalformedApiKey();
 
       if(queryValue) return queryValue;
     }

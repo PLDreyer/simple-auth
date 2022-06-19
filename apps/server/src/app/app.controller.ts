@@ -10,6 +10,7 @@ export class AppController {
   @UseGuards(KeyAuthGuard)
   @Get()
   async getData(@Req() req: Request) {
+    console.log("req.cookies: ", req.cookies)
     return this.appService.getData();
   }
 }

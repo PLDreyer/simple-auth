@@ -4,7 +4,11 @@ import {JwtService} from "@nestjs/jwt";
 import {AUTH_DATABASE_METHODS, AUTH_MODULE_OPTIONS} from "./constants";
 import {JwtRefreshService, JwtSessionService} from "./jwt/jwt.constants";
 import {generate} from 'rand-token';
-import {AuthOptions, InvalidRefreshToken, MissingApiKey, MissingRefreshToken} from "@simple-auth/core";
+import {
+  AuthOptions,
+  InvalidJwtRefresh,
+  MissingJwtRefresh,
+} from "@simple-auth/core";
 
 @Injectable()
 export class AuthService {
@@ -24,14 +28,15 @@ export class AuthService {
   }
 
   async login(user: Express.User, req: Request, res: Response) {
-    const sessionPayload = { sub: user.id  };
+    const sessionPayload = { sub: user.id, id: generate(32)  };
+    await this.databaseMethods.saveOneSession(sessionPayload.id, user);
     const accessToken = this.jwtSessionService.sign(sessionPayload, {
       secret: this.authOptions.session.secret,
       expiresIn: this.authOptions.session.lifetime,
     });
 
     const refreshPayload = { refresh: generate(32) };
-    await this.databaseMethods.saveOneRefresh(refreshPayload.refresh);
+    await this.databaseMethods.saveOneRefresh(refreshPayload.refresh, user);
     const refreshToken = this.jwtRefreshService.sign(refreshPayload, {
       secret: this.authOptions.refresh.secret,
       expiresIn: this.authOptions.refresh.lifetime,
@@ -69,7 +74,7 @@ export class AuthService {
         this.authOptions.refresh.cookie.name
       ];
     if(!cookie) {
-      const e = new MissingRefreshToken();
+      const e = new MissingJwtRefresh();
 
       if(this.authOptions.error) {
         return this.authOptions.error(e);
@@ -87,7 +92,7 @@ export class AuthService {
 
     const user = await this.databaseMethods.findOneRefresh(refreshPayload.refresh);
     if (!user) {
-      const e = new InvalidRefreshToken();
+      const e = new InvalidJwtRefresh();
 
       if(this.authOptions.error) {
         return this.authOptions.error(e);

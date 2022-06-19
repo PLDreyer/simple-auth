@@ -148,14 +148,10 @@ export class AuthModule implements NestModule {
   ) {}
 
   configure(consumer: MiddlewareConsumer) {
-      (consumer as MiddlewareBuilder).getHttpAdapter().getInstance().use(
-        this.authOptions.parser.cookieSecret !== undefined ?
-          cookieParser(this.authOptions.parser.cookieSecret) : cookieParser(),
-      );
-      //console.log("router: ", (consumer as MiddlewareBuilder).getHttpAdapter().getInstance()._router.stack.splice(0,0 ));
-      setTimeout(() => {
-        console.log("router: ", (consumer as MiddlewareBuilder).getHttpAdapter().getInstance()._router.stack)
-      },3000)
+    consumer.apply(
+      this.authOptions.parser.cookieSecret !== undefined ?
+        cookieParser(this.authOptions.parser.cookieSecret) : cookieParser(),
+    ).forRoutes("*")
   }
 
   public static forRootAsync(options: AsyncAuthOptions<AuthOptions>): DynamicModule {

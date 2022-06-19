@@ -3,7 +3,7 @@ import {ExtractJwt, Strategy} from "passport-jwt";
 import {PassportStrategy} from "@nestjs/passport";
 import {Request} from "express";
 import {AUTH_MODULE_OPTIONS} from "../constants";
-import {AuthOptions} from "@simple-auth/core";
+import {AuthOptions, InvalidJwtSession, MalformedJwtSession, MissingUser} from "@simple-auth/core";
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy,'jwt') {
@@ -14,22 +14,36 @@ export class JwtStrategy extends PassportStrategy(Strategy,'jwt') {
     super({
       ignoreExpiration: false,
       secretOrKey: authOptions.session.secret,
-      jwtFromRequest:ExtractJwt.fromExtractors([(request:Request) => {
-        console.log("cookies: ", JSON.stringify(request.cookies, null, 2))
-        let data = request?.cookies[authOptions.session.cookie.name];
-        console.log("data: ", data);
-        if(!data){
-          return null;
-        }
-        return data
+      jwtFromRequest:ExtractJwt.fromExtractors([(req:Request) => {
+        const cookieName = this.authOptions.session.cookie.name;
+        const cookie =
+          this.authOptions.session.cookie.signed ?
+            req.signedCookies[cookieName] : req.cookies[cookieName];
+
+        console.log("cookie: ", cookie);
+        if(!cookie) return null;
+
+        return cookie;
       }])
     });
   }
 
-  async validate(payload:any, done: (...args: Array<unknown>) => unknown){
-    if(payload === null){
-      throw new UnauthorizedException();
-    }
-    return payload;
+  /**
+   * @param payload
+   * @returns user, info, status
+   */
+  async validate(payload: Record<string, unknown> | string){
+    console.log("payload: ", payload);
+    if(!payload) return [null, new InvalidJwtSession()];
+
+    if(typeof payload !== "object") return [null, new MalformedJwtSession()];
+
+    const id = payload.id as string;
+    if(!id) return [null, new MalformedJwtSession()];
+
+    const user = await this.authOptions.session.find(id);
+    if(!user) return [null, new MissingUser()];
+
+    return user;
   }
 }

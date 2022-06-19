@@ -4,7 +4,7 @@ import {PassportStrategy} from "@nestjs/passport";
 import {Request} from "express";
 import {AuthService} from "../auth.service";
 import {AUTH_MODULE_OPTIONS} from "../constants";
-import {AuthOptions} from "@simple-auth/core";
+import {AuthOptions, InvalidJwtSession, MalformedJwtSession} from "@simple-auth/core";
 
 @Injectable()
 export class RefreshStrategy extends PassportStrategy(Strategy, 'refresh') {
@@ -17,30 +17,28 @@ export class RefreshStrategy extends PassportStrategy(Strategy, 'refresh') {
       ignoreExpiration: false,
       passReqToCallback: true,
       secretOrKey: authOptions.refresh.secret,
-      jwtFromRequest: ExtractJwt.fromExtractors([(request: Request) => {
-        let data = request?.cookies[authOptions.refresh.cookie.name];
-        if (!data) {
-          return null;
-        }
-        return data.token
+      jwtFromRequest: ExtractJwt.fromExtractors([(req: Request) => {
+        const cookieName = this.authOptions.session.cookie.name;
+        const cookie =
+          this.authOptions.session.cookie.signed ?
+            req.signedCookies[cookieName] : req.cookies[cookieName];
+
+        if(!cookie) return null;
+
+        return cookie;
       }])
     })
   }
 
-  async validate(req: Request, payload: any) {
-    if (!payload) {
-      throw new BadRequestException('invalid jwt token');
-    }
-    let data = req?.cookies["auth-cookie"];
-    if (!data?.refreshToken) {
-      throw new BadRequestException('invalid refresh token');
-    }
-    let user = null//await this.userService.validRefreshToken(payload.email, data.refreshToken);
-    if (!user) {
-      throw new BadRequestException('token expired');
-    }
+  async validate(payload: Record<string, unknown> | string) {
+    if(!payload) return [null, new InvalidJwtSession()];
 
-    return user;
+    if(typeof payload !== "object") return [null, new MalformedJwtSession()];
+
+    const id = payload.id;
+    if(!id) return [null, new MalformedJwtSession()];
+
+    return payload;
   }
 }
 

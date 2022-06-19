@@ -33,7 +33,7 @@ export type AuthOptions = {
   };
   session?: {
     find: (id: string) => Promise<Express.User | null>;
-    save: (id: string) => Promise<void>;
+    save: (id: string, user: Express.User) => Promise<void>;
     delete: (id: string) => Promise<void>;
     cookie?: {
       name?: string;
@@ -50,7 +50,7 @@ export type AuthOptions = {
   };
   refresh?: {
     find: (id: string) => Promise<Express.User | null>;
-    save: (id: string) => Promise<void>;
+    save: (id: string, user: Express.User) => Promise<void>;
     delete: (id: string) => Promise<void>;
     cookie?: {
       name?: string;
@@ -67,5 +67,5 @@ export type AuthOptions = {
   parser?: {
     cookieSecret?: string | Array<string>;
   };
-  error?: (error: AuthError) => Promise<void>;
+  error?: (error: AuthError) => Promise<never>;
 }
