@@ -9,10 +9,11 @@ import {AuthModule} from "@simple-auth/nestjs";
 import {AuthError, AuthOptions} from "@simple-auth/core";
 
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     // tslint:disable-next-line:no-empty-interface
-    interface AuthInfo {
-    }
+    // eslint-disable-next-line @typescript-eslint/no-empty-interface
+    interface AuthInfo {}
 
     // tslint:disable-next-line:no-empty-interface
     interface User {
@@ -58,14 +59,6 @@ declare global {
             passwordField: "password",
             async find(username: string, password: string): Promise<Express.User> {
               return usersService.findOneUser(username, password);
-            }
-          },
-          anonymous: {
-            async save(id: string): Promise<void> {
-
-            },
-            async find(id: string): Promise<any> {
-
             }
           },
           session: {

@@ -32,7 +32,7 @@ export class AuthService {
     await this.databaseMethods.saveOneSession(sessionPayload.id, user);
     const accessToken = this.jwtSessionService.sign(sessionPayload, {
       secret: this.authOptions.session.secret,
-      expiresIn: this.authOptions.session.lifetime,
+      expiresIn: 10,// this.authOptions.session.lifetime,
     });
 
     const refreshPayload = { refresh: generate(32) };
@@ -66,7 +66,7 @@ export class AuthService {
   }
 
   async register(req: Request, res: Response) {
-
+    console.log("NOT_IMPLEMENTED")
   }
 
   async refresh(req: Request, res: Response) {
@@ -83,14 +83,14 @@ export class AuthService {
       throw e;
     }
 
-    let refreshPayload;
+    let loadedRefreshPayload;
     try {
-      refreshPayload = await this.jwtRefreshService.verify(cookie);
+      loadedRefreshPayload = await this.jwtRefreshService.verify(cookie);
     } catch(e) {
       if(this.authOptions.error) return this.authOptions.error(e);
     }
 
-    const user = await this.databaseMethods.findOneRefresh(refreshPayload.refresh);
+    const user = await this.databaseMethods.findOneRefresh(loadedRefreshPayload.refresh);
     if (!user) {
       const e = new InvalidJwtRefresh();
 
@@ -101,12 +101,27 @@ export class AuthService {
       throw e;
     }
 
-    await this.databaseMethods.deleteOneRefresh(refreshPayload.refresh);
+    await this.databaseMethods.deleteOneRefresh(loadedRefreshPayload.refresh);
 
-    const token = generate(32);
-    const refreshToken = this.jwtRefreshService.sign({
-      refresh: token,
+    const sessionPayload = { sub: user.id, id: generate(32)  };
+    await this.databaseMethods.saveOneSession(sessionPayload.id, user);
+    const accessToken = this.jwtSessionService.sign(sessionPayload, {
+      secret: this.authOptions.session.secret,
+      expiresIn: 10,// this.authOptions.session.lifetime,
     });
+
+    const refreshPayload = { refresh: generate(32) };
+    await this.databaseMethods.saveOneRefresh(refreshPayload.refresh, user);
+    const refreshToken = this.jwtRefreshService.sign(refreshPayload, {
+      secret: this.authOptions.refresh.secret,
+      expiresIn: this.authOptions.refresh.lifetime,
+    });
+
+    res.cookie(
+      this.authOptions.session.cookie.name,
+      accessToken,
+      this.authOptions.session.cookie,
+    )
 
     res.cookie(
       this.authOptions.refresh.cookie.name,
@@ -114,17 +129,18 @@ export class AuthService {
       this.authOptions.refresh.cookie,
     )
 
-    if(this.authOptions.refresh.customResponse) {
-      return this.authOptions.refresh.customResponse(req, res, refreshToken);
+    if(this.authOptions.session.customResponse) {
+      return this.authOptions.session.customResponse(req, res, accessToken, refreshToken);
     }
 
-    res.json({
+    return {
       success: true,
+      accessToken,
       refreshToken,
-    })
+    };
   }
 
   async logout(req: Request, res: Response) {
-
+    console.log("NOT_IMPLEMENTED")
   }
 }

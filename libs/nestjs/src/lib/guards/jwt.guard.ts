@@ -23,7 +23,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       if (this.authOptions.error) return this.authOptions.error(info);
       throw info;
     }
-    console.log("user: ", user);
+
     return user as any
   }
 }

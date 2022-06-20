@@ -1,4 +1,4 @@
-import {DynamicModule, Inject, MiddlewareConsumer, Module, NestModule, RequestMethod,} from "@nestjs/common";
+import {DynamicModule, Inject, MiddlewareConsumer, Module, NestModule} from "@nestjs/common";
 import {AuthController} from './auth.controller';
 import {AuthService} from './auth.service';
 import {PassportModule} from "@nestjs/passport";
@@ -14,9 +14,9 @@ import {JwtRefreshModule} from "./jwt/jwt.refresh.module";
 import {AuthOptions} from "@simple-auth/core";
 import {JwtModuleOptions} from "@nestjs/jwt";
 import * as cookieParser from "cookie-parser";
-import {MiddlewareBuilder} from "@nestjs/core";
 
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface User {
       id: string;
@@ -44,12 +44,11 @@ export class AuthConfigModule {
             return {
               findOneUser: authOptions.login.find,
               findOneApikey: authOptions.apiKey.find,
-              findOneAnonymous: authOptions.anonymous.find,
-              saveOneAnonymous: authOptions.anonymous.save,
               findOneSession: authOptions.session.find,
               saveOneSession: authOptions.session.save,
               findOneRefresh: authOptions.refresh.find,
               saveOneRefresh: authOptions.refresh.save,
+              deleteOneRefresh: authOptions.refresh.delete,
             }
           },
           inject: [AUTH_MODULE_OPTIONS_USER]
@@ -76,7 +75,6 @@ export class AuthConfigModule {
     return {
       apiKey: this.verifyApiKeyOptions(authModuleOptions.apiKey),
       login: this.verifyLoginOptions(authModuleOptions.login),
-      anonymous: authModuleOptions.anonymous,
       session: this.verifySessionOptions(authModuleOptions.session),
       refresh: this.verifyRefreshOptions(authModuleOptions.refresh),
       parser: authModuleOptions.parser || {},

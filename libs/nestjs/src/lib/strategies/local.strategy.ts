@@ -1,9 +1,9 @@
 import { Strategy } from 'passport-local';
 import { PassportStrategy } from '@nestjs/passport';
-import {Inject, Injectable, UnauthorizedException} from '@nestjs/common';
+import {Inject, Injectable} from '@nestjs/common';
 import { AuthService } from '../auth.service';
 import {AUTH_MODULE_OPTIONS} from "../constants";
-import {AuthOptions, MissingUser} from "@simple-auth/core";
+import {AuthOptions, InvalidUserCredentials} from "@simple-auth/core";
 
 @Injectable()
 export class LocalStrategy extends PassportStrategy(Strategy, 'local') {
@@ -22,7 +22,7 @@ export class LocalStrategy extends PassportStrategy(Strategy, 'local') {
     const user = await this.authService.validateUser(username, password);
 
     if (!user) {
-      return [null, new MissingUser()];
+      return [null, new InvalidUserCredentials()];
     }
 
     return user;

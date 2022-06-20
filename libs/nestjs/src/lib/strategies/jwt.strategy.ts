@@ -20,7 +20,6 @@ export class JwtStrategy extends PassportStrategy(Strategy,'jwt') {
           this.authOptions.session.cookie.signed ?
             req.signedCookies[cookieName] : req.cookies[cookieName];
 
-        console.log("cookie: ", cookie);
         if(!cookie) return null;
 
         return cookie;
@@ -33,7 +32,6 @@ export class JwtStrategy extends PassportStrategy(Strategy,'jwt') {
    * @returns user, info, status
    */
   async validate(payload: Record<string, unknown> | string){
-    console.log("payload: ", payload);
     if(!payload) return [null, new InvalidJwtSession()];
 
     if(typeof payload !== "object") return [null, new MalformedJwtSession()];

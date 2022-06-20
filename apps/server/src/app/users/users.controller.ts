@@ -12,6 +12,8 @@ export class UsersController {
   @UseGuards(GeneralAuthGuard)
   @Get("me")
   async me(@Req() req: Request) {
+    console.log("isAuthenticated: ", req.isAuthenticated())
+    console.log("user: ", req.user);
     return this.usersService.findOneUser(req.user.id);
   }
 }

@@ -1,7 +1,8 @@
 import {Request, Response} from "express";
-import {AuthError} from "./auth.exceptions";
+import {AuthListException} from "./auth.exceptions";
 
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     // eslint-disable-next-line @typescript-eslint/no-empty-interface
     interface User {}
@@ -26,10 +27,6 @@ export type AuthOptions = {
     passwordField?: string;
     find: (username: string, password: string) => Promise<Express.User | null>;
     customResponse?: (req: Request) => Promise<unknown>,
-  };
-  anonymous?: {
-    find: (id: string) => Promise<Express.User | null>;
-    save: (id: string) => Promise<void>;
   };
   session?: {
     find: (id: string) => Promise<Express.User | null>;
@@ -67,5 +64,5 @@ export type AuthOptions = {
   parser?: {
     cookieSecret?: string | Array<string>;
   };
-  error?: (error: AuthError) => Promise<never>;
+  error?: (errors: AuthListException) => Promise<never>;
 }
