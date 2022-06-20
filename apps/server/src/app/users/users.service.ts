@@ -80,9 +80,11 @@ export class UsersService {
   }
 
   private debugHook() {
+    /*
     console.log("UserStore: ", JSON.stringify([...UserStore.values()], null, 2));
     console.log("SessionStore: ", JSON.stringify([...SessionStore.values()], null, 2));
     console.log("RefreshStore: ", JSON.stringify([...RefreshStore.values()], null, 2));
     console.log("ApiKeyStore: ", JSON.stringify([...ApiKeyStore.values()], null, 2));
+     */
   }
 }

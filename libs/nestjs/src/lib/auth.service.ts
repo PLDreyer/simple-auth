@@ -5,6 +5,7 @@ import {AUTH_DATABASE_METHODS, AUTH_MODULE_OPTIONS} from "./constants";
 import {JwtRefreshService, JwtSessionService} from "./jwt/jwt.constants";
 import {generate} from 'rand-token';
 import {
+  AuthListException,
   AuthOptions,
   InvalidJwtRefresh,
   MissingJwtRefresh,
@@ -70,38 +71,13 @@ export class AuthService {
   }
 
   async refresh(req: Request, res: Response) {
-    const cookie = req.cookies[
-        this.authOptions.refresh.cookie.name
-      ];
-    if(!cookie) {
-      const e = new MissingJwtRefresh();
-
-      if(this.authOptions.error) {
-        return this.authOptions.error(e);
-      }
-
-      throw e;
-    }
-
-    let loadedRefreshPayload;
-    try {
-      loadedRefreshPayload = await this.jwtRefreshService.verify(cookie);
-    } catch(e) {
-      if(this.authOptions.error) return this.authOptions.error(e);
-    }
-
-    const user = await this.databaseMethods.findOneRefresh(loadedRefreshPayload.refresh);
+    const user = await this.databaseMethods.findOneRefresh((req.user as unknown as { refresh: string }).refresh);
     if (!user) {
       const e = new InvalidJwtRefresh();
-
-      if(this.authOptions.error) {
-        return this.authOptions.error(e);
-      }
-
-      throw e;
+      throw new AuthListException([e]);
     }
 
-    await this.databaseMethods.deleteOneRefresh(loadedRefreshPayload.refresh);
+    await this.databaseMethods.deleteOneRefresh((req.user as unknown as { refresh: string }).refresh);
 
     const sessionPayload = { sub: user.id, id: generate(32)  };
     await this.databaseMethods.saveOneSession(sessionPayload.id, user);
@@ -129,7 +105,7 @@ export class AuthService {
       this.authOptions.refresh.cookie,
     )
 
-    if(this.authOptions.session.customResponse) {
+    if(this.authOptions.refresh.customResponse) {
       return this.authOptions.session.customResponse(req, res, accessToken, refreshToken);
     }
 
