@@ -1,4 +1,3 @@
-import { Request, Response } from 'express';
 import { AuthListException } from './auth.exceptions';
 import { SessionOptions } from './session';
 import { ApiKeyOptions } from './apikey';

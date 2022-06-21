@@ -109,7 +109,6 @@ export class UsersService {
   }
 
   async shouldValidateTwoFaToken(user: Express.User): Promise<boolean> {
-    console.log('user.twofaSecret: ', !!user.twoFaSecret);
     return !!user.twoFaSecret;
   }
 
