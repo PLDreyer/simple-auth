@@ -1,47 +1,84 @@
-import {Inject, Injectable, UnauthorizedException} from "@nestjs/common";
-import {ExtractJwt, Strategy} from "passport-jwt";
-import {PassportStrategy} from "@nestjs/passport";
-import {Request} from "express";
-import {AUTH_MODULE_OPTIONS} from "../constants";
-import {AuthOptions, InvalidJwtSession, MalformedJwtSession, MissingUser} from "@simple-auth/core";
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { Strategy } from 'passport-custom';
+import { PassportStrategy } from '@nestjs/passport';
+import { Request } from 'express';
+import { AUTH_MODULE_OPTIONS } from '../constants';
+import {
+  AuthError,
+  AuthOptions,
+  ExpiredJwtSession,
+  InternalAuthError,
+  InvalidJwtSession,
+  MalformedJwtSession,
+  MissingJwtSession,
+} from '@simple-auth/core';
+import { JwtSessionService } from '../jwt/jwt.constants';
+import { JwtService } from '@nestjs/jwt';
+import { TokenExpiredError } from 'jsonwebtoken';
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy,'jwt') {
+export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor(
     @Inject(AUTH_MODULE_OPTIONS)
     private readonly authOptions: AuthOptions,
-  ){
-    super({
-      ignoreExpiration: false,
-      secretOrKey: authOptions.session.secret,
-      jwtFromRequest:ExtractJwt.fromExtractors([(req:Request) => {
-        const cookieName = this.authOptions.session.cookie.name;
-        const cookie =
-          this.authOptions.session.cookie.signed ?
-            req.signedCookies[cookieName] : req.cookies[cookieName];
-
-        if(!cookie) return null;
-
-        return cookie;
-      }])
-    });
+    @Inject(JwtSessionService)
+    private readonly jwtService: JwtService
+  ) {
+    super();
   }
 
   /**
-   * @param payload
+   * @param req
    * @returns user, info, status
    */
-  async validate(payload: Record<string, unknown> | string){
-    if(!payload) return [null, new InvalidJwtSession()];
+  async validate(
+    req: Request
+  ): Promise<[Express.User | null, AuthError | null]> {
+    const jwt = await this.getJwtFromCookie(req);
+    if (!jwt) return [null, new MissingJwtSession()];
 
-    if(typeof payload !== "object") return [null, new MalformedJwtSession()];
+    const [payload, error] = await this.getJwtPayload(jwt);
+    if (error) return [null, error];
 
-    const id = payload.id as string;
-    if(!id) return [null, new MalformedJwtSession()];
+    if (!payload.id) return [null, new InvalidJwtSession()];
 
-    const user = await this.authOptions.session.find(id);
-    if(!user) return [null, new MissingUser()];
+    if (typeof payload.id !== 'string')
+      return [null, new MalformedJwtSession()];
 
-    return user;
+    const user = await this.authOptions.session.find(payload.id);
+    if (!user) return [null, new InvalidJwtSession()];
+
+    return [user, null];
+  }
+
+  private async getJwtFromCookie(req: Request): Promise<string | null> {
+    const cookieName = this.authOptions.session.cookie.name;
+    const cookie = this.authOptions.session.cookie.signed
+      ? req.signedCookies[cookieName]
+      : req.cookies[cookieName];
+
+    if (!cookie) return null;
+
+    return cookie;
+  }
+
+  private async getJwtPayload(
+    jwt: string
+  ): Promise<[Record<string, unknown> | null, AuthError | null]> {
+    let payload;
+
+    try {
+      payload = await this.jwtService.verify(jwt, {
+        secret: this.authOptions.session.secret,
+        ignoreExpiration: false,
+      });
+    } catch (e) {
+      if (e instanceof TokenExpiredError)
+        return [null, new ExpiredJwtSession()];
+
+      return [null, new InternalAuthError()];
+    }
+
+    return [payload, null];
   }
 }

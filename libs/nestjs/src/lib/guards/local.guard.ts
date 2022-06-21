@@ -1,13 +1,18 @@
-import {ExecutionContext, Inject, Injectable, UnauthorizedException} from '@nestjs/common';
+import {
+  ExecutionContext,
+  Inject,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import {AuthError, AuthOptions} from "@simple-auth/core";
-import {AUTH_MODULE_OPTIONS} from "../constants";
+import { AuthError, AuthOptions } from '@simple-auth/core';
+import { AUTH_MODULE_OPTIONS } from '../constants';
 
 @Injectable()
 export class LocalAuthGuard extends AuthGuard('local') {
   constructor(
     @Inject(AUTH_MODULE_OPTIONS)
-    private readonly authOptions: AuthOptions,
+    private readonly authOptions: AuthOptions
   ) {
     super();
   }
@@ -18,14 +23,20 @@ export class LocalAuthGuard extends AuthGuard('local') {
     return super.canActivate(context);
   }
 
-  public handleRequest(error: unknown, user: Express.User, info: AuthError, ctx: ExecutionContext, status: unknown): any{
+  public handleRequest(
+    error: unknown,
+    user: Express.User,
+    info: AuthError,
+    ctx: ExecutionContext,
+    status: unknown
+  ): any {
     // You can throw an exception based on either "info" or "err" arguments
     if (error || info) {
-      console.log("error: ", error);
+      console.log('error: ', error);
       if (this.authOptions.error) return this.authOptions.error(info);
       throw info;
     }
 
-    return user as any
+    return user as any;
   }
 }

@@ -1,7 +1,7 @@
-import {Controller, Get, UseGuards, Req} from '@nestjs/common';
+import { Controller, Get, UseGuards, Req } from '@nestjs/common';
 import { AppService } from './app.service';
-import {KeyAuthGuard} from "@simple-auth/nestjs";
-import {Request} from "express";
+import { KeyAuthGuard } from '@simple-auth/nestjs';
+import { Request } from 'express';
 
 @Controller()
 export class AppController {
@@ -10,7 +10,7 @@ export class AppController {
   @UseGuards(KeyAuthGuard)
   @Get()
   async getData(@Req() req: Request) {
-    console.log("req.cookies: ", req.cookies)
+    console.log('req.cookies: ', req.cookies);
     return this.appService.getData();
   }
 }

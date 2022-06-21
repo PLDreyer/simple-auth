@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
-import {ConfigModule, ConfigService} from "@nestjs/config";
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import {UsersModule} from "./users/users.module";
+import { UsersModule } from './users/users.module';
 import configuration from '../config/config';
-import {UsersService} from "./users/users.service";
-import {AuthModule} from "@simple-auth/nestjs";
-import {AuthError, AuthOptions} from "@simple-auth/core";
+import { UsersService } from './users/users.service';
+import { AuthModule } from '@simple-auth/nestjs';
+import { AuthError, AuthOptions } from '@simple-auth/core';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -18,6 +18,7 @@ declare global {
     // tslint:disable-next-line:no-empty-interface
     interface User {
       name: string;
+      twoFaSecret: string | undefined;
     }
   }
 }
@@ -26,10 +27,7 @@ declare global {
   imports: [
     ConfigModule.forRoot({
       load: [configuration],
-      envFilePath: [
-        '.env.development.local',
-        '.env.development'
-      ],
+      envFilePath: ['.env.development.local', '.env.development'],
       isGlobal: true,
     }),
     UsersModule,
@@ -42,34 +40,59 @@ declare global {
         return {
           apiKey: {
             header: {
-              names: ["key"]
+              names: ['key'],
             },
             query: {
-              names: ["key"]
+              names: ['key'],
             },
             body: {
-              names: ["key"]
+              names: ['key'],
             },
             async find(key: string): Promise<Express.User | null> {
               return usersService.findOneApiKey(key);
-            }
+            },
           },
           login: {
-            usernameField: "email",
-            passwordField: "password",
-            async find(username: string, password: string): Promise<Express.User> {
+            usernameField: 'email',
+            passwordField: 'password',
+            async find(
+              username: string,
+              password: string
+            ): Promise<Express.User> {
               return usersService.findOneUser(username, password);
-            }
+            },
+            twoFa: {
+              async findTwoFaSessionToken(
+                id: string
+              ): Promise<Express.User | null> {
+                return usersService.findTwoFaSessionToken(id);
+              },
+              async saveTwoFaSessionToken(
+                id: string,
+                user: Express.User
+              ): Promise<void> {
+                return usersService.saveTwoFaSessionToken(id, user);
+              },
+              async deleteTwoFaSessionToken(id: string): Promise<void> {
+                return usersService.deleteTwoFaSessionToken(id);
+              },
+              shouldValidateTwoFa(user: Express.User): Promise<boolean> {
+                return usersService.shouldValidateTwoFaToken(user);
+              },
+              async validateTwoFaCode(code: string): Promise<boolean> {
+                return usersService.validateTwoFaCode(code);
+              },
+            },
           },
           session: {
             cookie: {
-              name: "session",
+              name: 'session',
               secure: false,
-              path: "/",
+              path: '/',
               httpOnly: false,
               signed: false,
             },
-            secret: "secret_session",
+            secret: 'secret_session',
             encrypted: true,
             lifetime: 15 * 60, // 15 minutes
             async save(id: string, user: Express.User): Promise<void> {
@@ -80,17 +103,17 @@ declare global {
             },
             async delete(id: string): Promise<void> {
               return usersService.deleteOneSession(id);
-            }
+            },
           },
           refresh: {
             cookie: {
-              name: "refresh",
+              name: 'refresh',
               secure: false,
-              path: "/",
+              path: '/',
               httpOnly: false,
               signed: false,
             },
-            secret: "secret_refresh",
+            secret: 'secret_refresh',
             lifetime: 14 * 24 * 60 * 60, // 14 days
             async save(id: string, user: Express.User): Promise<void> {
               return usersService.saveOneRefresh(id, user);
@@ -100,15 +123,15 @@ declare global {
             },
             async delete(id: string): Promise<void> {
               return usersService.deleteOneRefresh(id);
-            }
+            },
           },
           parser: {
-            cookieSecret: "secret",
+            cookieSecret: 'secret',
           },
           error: async (error: AuthError) => {
             throw error;
           },
-        }
+        };
       },
       inject: [UsersService, ConfigService],
     }),

@@ -1,25 +1,27 @@
-import {ExecutionContext, Inject, Injectable} from '@nestjs/common';
+import { ExecutionContext, Inject, Injectable } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import {
   AuthError,
   AuthListException,
   AuthOptions,
+  ExpiredJwtRefresh,
   ExpiredJwtSession,
   InternalAuthError,
   InvalidApiKey,
-  InvalidUserCredentials
-} from "@simple-auth/core";
-import {TokenExpiredError} from "jsonwebtoken";
-import {AUTH_MODULE_OPTIONS} from "../constants";
+  InvalidUserCredentials,
+  MissingJwtRefresh,
+} from '@simple-auth/core';
+import { TokenExpiredError } from 'jsonwebtoken';
+import { AUTH_MODULE_OPTIONS } from '../constants';
 
 /**
  * Used for all endpoints
  */
 @Injectable()
-export class GeneralAuthGuard extends AuthGuard(["local", "key", "jwt"]) {
+export class GeneralAuthGuard extends AuthGuard(['local', 'key', 'jwt']) {
   constructor(
     @Inject(AUTH_MODULE_OPTIONS)
-    private readonly authOptions: AuthOptions,
+    private readonly authOptions: AuthOptions
   ) {
     super();
   }
@@ -30,36 +32,33 @@ export class GeneralAuthGuard extends AuthGuard(["local", "key", "jwt"]) {
     return super.canActivate(context);
   }
 
-  public handleRequest(error: null | unknown, user: Express.User, info: Array<unknown>) {
+  public handleRequest(
+    error: null | unknown,
+    user: Express.User,
+    info: Array<unknown>
+  ) {
     if (error || info) {
-      const errors = info.reduce((acumm: Array<AuthError>, current: any): Array<AuthError> => {
-        if(current instanceof InvalidApiKey) acumm.push(
-          current
-        );
+      const errors = info.reduce(
+        (acumm: Array<AuthError>, current: any): Array<AuthError> => {
+          if (current instanceof InvalidApiKey) acumm.push(current);
 
-        if(current instanceof TokenExpiredError) acumm.push(
-          new ExpiredJwtSession()
-        );
+          if (current instanceof ExpiredJwtSession) acumm.push(current);
 
-        if(current instanceof InvalidUserCredentials) acumm.push(
-          current
-        );
+          if (current instanceof InvalidUserCredentials) acumm.push(current);
 
-        return acumm;
-      }, []) as Array<AuthError>;
+          return acumm;
+        },
+        []
+      ) as Array<AuthError>;
 
-      if(errors.length === 0) errors.push(
-        new InternalAuthError(),
-      );
+      if (errors.length === 0) errors.push(new InternalAuthError());
 
       const exception = new AuthListException(errors);
-      if (this.authOptions.error) return this.authOptions.error(
-        exception
-      );
+      if (this.authOptions.error) return this.authOptions.error(exception);
 
       throw exception;
     }
 
-    return user as any
+    return user as any;
   }
 }

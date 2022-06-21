@@ -6,7 +6,7 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 
 @Injectable()
-export class LoginAuthGuard extends AuthGuard(['local']) {
+export class TwoFaAuthGuard extends AuthGuard(['twofa']) {
   canActivate(context: ExecutionContext) {
     // Add your custom authentication logic here
     // for example, call super.logIn(request) to establish a session.

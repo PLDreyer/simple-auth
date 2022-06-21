@@ -1,5 +1,11 @@
-import {Request, Response} from "express";
-import {AuthListException} from "./auth.exceptions";
+import { Request, Response } from 'express';
+import { AuthListException } from './auth.exceptions';
+import { SessionOptions } from './session';
+import { ApiKeyOptions } from './apikey';
+import { RefreshOptions } from './refresh';
+import { LoginOptions } from './login';
+import { ParserOptions } from './parser';
+import { EndpointOptions } from './endpoints';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -10,59 +16,11 @@ declare global {
 }
 
 export type AuthOptions = {
-  apiKey?: {
-    header?: {
-      names?: Array<string>;
-    };
-    query?: {
-      names?: Array<string>;
-    };
-    body?: {
-      names?: Array<string>;
-    };
-    find: (key: string) => Promise<Express.User | null>;
-  };
-  login: {
-    usernameField?: string;
-    passwordField?: string;
-    find: (username: string, password: string) => Promise<Express.User | null>;
-    customResponse?: (req: Request) => Promise<unknown>,
-  };
-  session?: {
-    find: (id: string) => Promise<Express.User | null>;
-    save: (id: string, user: Express.User) => Promise<void>;
-    delete: (id: string) => Promise<void>;
-    cookie?: {
-      name?: string;
-      secure?: boolean;
-      signed?: boolean;
-      httpOnly?: boolean;
-      domain?: string;
-      path?: string;
-    };
-    lifetime?: number;
-    encrypted?: boolean;
-    secret: string;
-    customResponse?: (req: Request, res: Response, accessToken: string, refreshToken: string) => Promise<unknown>,
-  };
-  refresh?: {
-    find: (id: string) => Promise<Express.User | null>;
-    save: (id: string, user: Express.User) => Promise<void>;
-    delete: (id: string) => Promise<void>;
-    cookie?: {
-      name?: string;
-      secure?: boolean;
-      signed?: boolean;
-      httpOnly?: boolean;
-      domain?: string;
-      path?: string;
-    };
-    lifetime?: number;
-    secret: string;
-    customResponse?: (req: Request, res: Response, refreshToken: string) => Promise<unknown>,
-  };
-  parser?: {
-    cookieSecret?: string | Array<string>;
-  };
+  apiKey?: ApiKeyOptions;
+  login: LoginOptions;
+  session?: SessionOptions;
+  refresh?: RefreshOptions;
+  parser?: ParserOptions;
+  endpoints?: EndpointOptions;
   error?: (errors: AuthListException) => Promise<never>;
-}
+};
