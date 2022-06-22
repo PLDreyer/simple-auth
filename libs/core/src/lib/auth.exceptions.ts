@@ -76,7 +76,7 @@ export class InvalidUserCredentials extends UserError {
     );
   }
 }
-export class MissingUser extends UserError {
+export class MissingUserCredentials extends UserError {
   constructor() {
     super(
       {

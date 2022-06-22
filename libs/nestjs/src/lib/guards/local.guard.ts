@@ -5,7 +5,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { AuthError, AuthOptions } from '@simple-auth/core';
+import { AuthError, AuthListException, AuthOptions } from '@simple-auth/core';
 import { AUTH_MODULE_OPTIONS } from '../constants';
 
 @Injectable()
@@ -32,9 +32,9 @@ export class LocalAuthGuard extends AuthGuard('local') {
   ): any {
     // You can throw an exception based on either "info" or "err" arguments
     if (error || info) {
-      console.log('error: ', error);
-      if (this.authOptions.error) return this.authOptions.error(info);
-      throw info;
+      const exception = new AuthListException([info]);
+      if (this.authOptions.error) return this.authOptions.error(exception);
+      throw exception;
     }
 
     return user as any;

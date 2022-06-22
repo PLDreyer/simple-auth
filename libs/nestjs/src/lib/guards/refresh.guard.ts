@@ -7,9 +7,9 @@ import {
   AuthOptions,
   ExpiredJwtRefresh,
   InternalAuthError,
+  InvalidJwtRefresh,
   RefreshToken,
 } from '@simple-auth/core';
-import { TokenExpiredError } from 'jsonwebtoken';
 
 @Injectable()
 export class RefreshAuthGuard extends AuthGuard('refresh') {
@@ -31,8 +31,8 @@ export class RefreshAuthGuard extends AuthGuard('refresh') {
     if (err || (info && !(info instanceof RefreshToken))) {
       const errors: Array<AuthError> = [];
 
-      if (info instanceof TokenExpiredError)
-        errors.push(new ExpiredJwtRefresh());
+      if (info instanceof ExpiredJwtRefresh) errors.push(info);
+      if (info instanceof InvalidJwtRefresh) errors.push(info);
 
       if (errors.length === 0) errors.push(new InternalAuthError());
 

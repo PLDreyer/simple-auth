@@ -37,6 +37,8 @@ export class GeneralAuthGuard extends AuthGuard(['local', 'key', 'jwt']) {
     user: Express.User,
     info: Array<unknown>
   ) {
+    console.log('error: ', error);
+    console.log('info: ', info);
     if (error || info) {
       const errors = info.reduce(
         (acumm: Array<AuthError>, current: any): Array<AuthError> => {
