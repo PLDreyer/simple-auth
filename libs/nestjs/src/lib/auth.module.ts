@@ -9,7 +9,9 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { PassportModule } from '@nestjs/passport';
 import { KeyStrategy } from './strategies/key.strategy';
+import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
+import { RefreshStrategy } from './strategies/refresh.strategy';
 import { TwofaStrategy } from './strategies/twofa.strategy';
 import { AnonymousStrategy } from './strategies/anonymous.strategy';
 import { AsyncAuthOptions, AUTH_MODULE_OPTIONS } from './constants';
@@ -18,8 +20,6 @@ import { JwtRefreshModule } from './jwt/jwt.refresh.module';
 import { AuthOptions } from '@simple-auth/core';
 import { JwtModuleOptions } from '@nestjs/jwt';
 import * as cookieParser from 'cookie-parser';
-import { JwtStrategy } from './strategies/jwt.strategy';
-import { RefreshStrategy } from './strategies/refresh.strategy';
 import { AuthConfigModule } from './auth-config.module';
 
 declare global {
