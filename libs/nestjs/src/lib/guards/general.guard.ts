@@ -4,24 +4,21 @@ import {
   AuthError,
   AuthListException,
   AuthOptions,
-  ExpiredJwtRefresh,
   ExpiredJwtSession,
   InternalAuthError,
   InvalidApiKey,
   InvalidUserCredentials,
-  MissingJwtRefresh,
 } from '@simple-auth/core';
-import { TokenExpiredError } from 'jsonwebtoken';
 import { AUTH_MODULE_OPTIONS } from '../constants';
 
 /**
  * Used for all endpoints
  */
 @Injectable()
-export class GeneralAuthGuard extends AuthGuard(['local', 'key', 'jwt']) {
+export class GeneralAuthGuard extends AuthGuard(['key', 'jwt']) {
   constructor(
     @Inject(AUTH_MODULE_OPTIONS)
-    private readonly authOptions: AuthOptions
+    private readonly authOptions: AuthOptions<Express.User>
   ) {
     super();
   }
@@ -37,10 +34,11 @@ export class GeneralAuthGuard extends AuthGuard(['local', 'key', 'jwt']) {
     user: Express.User,
     info: Array<unknown>
   ) {
-    console.log('error: ', error);
-    console.log('info: ', info);
     if (error || info) {
+      console.log('error: ', error);
+      console.log('info: ', info);
       const errors = info.reduce(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (acumm: Array<AuthError>, current: any): Array<AuthError> => {
           if (current instanceof InvalidApiKey) acumm.push(current);
 
@@ -61,6 +59,7 @@ export class GeneralAuthGuard extends AuthGuard(['local', 'key', 'jwt']) {
       throw exception;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return user as any;
   }
 }

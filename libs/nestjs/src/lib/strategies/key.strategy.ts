@@ -16,19 +16,20 @@ import { AUTH_MODULE_OPTIONS } from '../constants';
 export class KeyStrategy extends PassportStrategy(Strategy, 'key') {
   constructor(
     @Inject(AUTH_MODULE_OPTIONS)
-    private readonly authOptions: AuthOptions
+    private readonly authOptions: AuthOptions<Express.User>
   ) {
     super();
   }
 
   /**
    * @param req
-   * @param done
    * @returns user, info, status
    */
   async validate(
     req: Request
   ): Promise<[Express.User | null, AuthError | null]> {
+    if (!this.authOptions.apiKey) return [null, null];
+
     const apiKey = this.getApiKeyFromFields(req);
     if (!apiKey) return [null, new MissingApiKey()];
 

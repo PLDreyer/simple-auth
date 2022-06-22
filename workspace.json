@@ -5,6 +5,8 @@
     "core": "libs/core",
     "nestjs": "libs/nestjs",
     "server": "apps/server",
-    "web": "libs/web"
+    "web": "libs/web",
+    "website": "apps/website",
+    "website-e2e": "apps/website-e2e"
   }
 }

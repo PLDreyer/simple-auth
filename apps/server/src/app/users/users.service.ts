@@ -8,8 +8,8 @@ const UserStore = new Map<string, Express.User>([
   ],
 ]);
 const SessionStore = new Map<string, string>();
-const RefreshStore = new Map<string, string>();
-const TwoFaTokenStore = new Map<string, string>();
+const RefreshStore = new Map<string, { id: string; rememberMe: boolean }>();
+const TwoFaTokenStore = new Map<string, { id: string; rememberMe: boolean }>();
 
 @Injectable()
 export class UsersService {
@@ -70,18 +70,24 @@ export class UsersService {
     this.debugHook();
   }
 
-  async findOneRefresh(id: string): Promise<Express.User> {
-    const userId = RefreshStore.get(id);
-    if (!userId) return null;
+  async findOneRefresh(
+    id: string
+  ): Promise<{ user: Express.User; rememberMe: boolean }> {
+    const refresh = RefreshStore.get(id);
+    if (!refresh) return null;
 
-    const user = UserStore.get(userId);
+    const user = UserStore.get(refresh.id);
     if (!user) return null;
 
-    return user;
+    return { user, rememberMe: refresh.rememberMe };
   }
 
-  async saveOneRefresh(id: string, user: Express.User): Promise<void> {
-    RefreshStore.set(id, user.id);
+  async saveOneRefresh(
+    id: string,
+    user: Express.User,
+    rememberMe: boolean
+  ): Promise<void> {
+    RefreshStore.set(id, { id: user.id, rememberMe });
     this.debugHook();
   }
 
@@ -90,18 +96,29 @@ export class UsersService {
     this.debugHook();
   }
 
-  async findTwoFaSessionToken(id: string): Promise<Express.User | null> {
-    const userId = TwoFaTokenStore.get(id);
-    if (!userId) return null;
+  async findTwoFaSessionToken(
+    id: string
+  ): Promise<{ user: Express.User; rememberMe: boolean } | null> {
+    const twofa = TwoFaTokenStore.get(id);
+    if (!twofa) return null;
 
-    const user = UserStore.get(userId);
+    const user = UserStore.get(twofa.id);
     if (!user) return null;
 
-    return user;
+    return {
+      user,
+      // TODO implement rememberMe
+      rememberMe: twofa.rememberMe,
+    };
   }
 
-  async saveTwoFaSessionToken(id: string, user: Express.User): Promise<void> {
-    TwoFaTokenStore.set(id, user.id);
+  async saveTwoFaSessionToken(
+    id: string,
+    user: Express.User,
+    rememberMe: boolean
+  ): Promise<void> {
+    // TODO save remember me
+    TwoFaTokenStore.set(id, { id: user.id, rememberMe });
   }
 
   async deleteTwoFaSessionToken(id: string): Promise<void> {

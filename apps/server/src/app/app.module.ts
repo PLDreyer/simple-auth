@@ -36,7 +36,7 @@ declare global {
       useFactory: async (
         usersService: UsersService,
         configService: ConfigService
-      ): Promise<AuthOptions> => {
+      ): Promise<AuthOptions<Express.User>> => {
         return {
           apiKey: {
             header: {
@@ -64,14 +64,15 @@ declare global {
             twoFa: {
               async findTwoFaSessionToken(
                 id: string
-              ): Promise<Express.User | null> {
+              ): Promise<{ user: Express.User; rememberMe: boolean } | null> {
                 return usersService.findTwoFaSessionToken(id);
               },
               async saveTwoFaSessionToken(
                 id: string,
-                user: Express.User
+                user: Express.User,
+                rememberMe: boolean
               ): Promise<void> {
-                return usersService.saveTwoFaSessionToken(id, user);
+                return usersService.saveTwoFaSessionToken(id, user, rememberMe);
               },
               async deleteTwoFaSessionToken(id: string): Promise<void> {
                 return usersService.deleteTwoFaSessionToken(id);
@@ -88,13 +89,14 @@ declare global {
             cookie: {
               name: 'session',
               secure: false,
+              domain: 'localhost',
               path: '/',
               httpOnly: false,
               signed: false,
             },
             secret: 'secret_session',
             encrypted: true,
-            lifetime: 15 * 60, // 15 minutes
+            lifetime: 10, //15 * 60, // 15 minutes
             async save(id: string, user: Express.User): Promise<void> {
               return usersService.saveOneSession(id, user);
             },
@@ -109,16 +111,23 @@ declare global {
             cookie: {
               name: 'refresh',
               secure: false,
+              domain: 'localhost',
               path: '/',
               httpOnly: false,
               signed: false,
             },
             secret: 'secret_refresh',
             lifetime: 14 * 24 * 60 * 60, // 14 days
-            async save(id: string, user: Express.User): Promise<void> {
-              return usersService.saveOneRefresh(id, user);
+            async save(
+              id: string,
+              user: Express.User,
+              rememberMe: boolean
+            ): Promise<void> {
+              return usersService.saveOneRefresh(id, user, rememberMe);
             },
-            async find(id: string): Promise<Express.User> {
+            async find(
+              id: string
+            ): Promise<{ user: Express.User; rememberMe: boolean }> {
               return usersService.findOneRefresh(id);
             },
             async delete(id: string): Promise<void> {

@@ -12,7 +12,7 @@ import { AUTH_MODULE_OPTIONS } from '../constants';
 export class LocalAuthGuard extends AuthGuard('local') {
   constructor(
     @Inject(AUTH_MODULE_OPTIONS)
-    private readonly authOptions: AuthOptions
+    private readonly authOptions: AuthOptions<Express.User>
   ) {
     super();
   }
@@ -27,9 +27,9 @@ export class LocalAuthGuard extends AuthGuard('local') {
     error: unknown,
     user: Express.User,
     info: AuthError,
-    ctx: ExecutionContext,
-    status: unknown
-  ): any {
+    _ctx: ExecutionContext,
+    _status: unknown
+  ) {
     // You can throw an exception based on either "info" or "err" arguments
     if (error || info) {
       const exception = new AuthListException([info]);
@@ -37,6 +37,7 @@ export class LocalAuthGuard extends AuthGuard('local') {
       throw exception;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return user as any;
   }
 }

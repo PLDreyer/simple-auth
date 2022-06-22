@@ -20,7 +20,7 @@ import { TokenExpiredError } from 'jsonwebtoken';
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor(
     @Inject(AUTH_MODULE_OPTIONS)
-    private readonly authOptions: AuthOptions,
+    private readonly authOptions: AuthOptions<Express.User>,
     @Inject(JwtSessionService)
     private readonly jwtService: JwtService
   ) {
@@ -52,10 +52,20 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   }
 
   private async getJwtFromCookie(req: Request): Promise<string | null> {
+    console.log('req.cookies: ', req.cookies);
+    console.log('req.signedCookies: ', req.signedCookies);
     const cookieName = this.authOptions.session.cookie.name;
-    const cookie = this.authOptions.session.cookie.signed
+    let cookie = this.authOptions.session.cookie.signed
       ? req.signedCookies[cookieName]
       : req.cookies[cookieName];
+
+    if (!cookie) {
+      cookie = this.authOptions.session.cookie.signed
+        ? req.cookies[cookieName]
+        : req.signedCookies[cookieName];
+    }
+
+    console.log('cookie: ', cookie);
 
     if (!cookie) return null;
 

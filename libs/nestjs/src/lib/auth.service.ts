@@ -20,7 +20,7 @@ export class AuthService {
     @Inject(JwtRefreshService)
     private readonly jwtRefreshService: JwtService,
     @Inject(AUTH_MODULE_OPTIONS)
-    private readonly authOptions: AuthOptions
+    private readonly authOptions: AuthOptions<Express.User>
   ) {}
 
   async validateUser(username: string, pass: string): Promise<any> {
@@ -32,8 +32,16 @@ export class AuthService {
     return this.authOptions.login.twoFa.shouldValidateTwoFa(user);
   }
 
-  async saveTwoFaSessionToken(id: string, user: Express.User): Promise<void> {
-    return this.authOptions.login?.twoFa?.saveTwoFaSessionToken(id, user);
+  async saveTwoFaSessionToken(
+    id: string,
+    user: Express.User,
+    rememberMe: boolean
+  ): Promise<void> {
+    return this.authOptions.login?.twoFa?.saveTwoFaSessionToken(
+      id,
+      user,
+      rememberMe
+    );
   }
 
   async validateTwoFaCode(code: string): Promise<boolean> {
@@ -41,11 +49,15 @@ export class AuthService {
   }
 
   async login(user: Express.User, req: Request, res: Response) {
+    const rememberMe: boolean =
+      req.body.rememberMe === undefined ? false : !!req.body.rememberMe;
+
     if (await this.authOptions.login.twoFa?.shouldValidateTwoFa(req.user)) {
       const twofaToken = generate(32);
       await this.authOptions.login.twoFa?.saveTwoFaSessionToken(
         twofaToken,
-        req.user
+        req.user,
+        rememberMe
       );
       return {
         success: false,
@@ -54,8 +66,8 @@ export class AuthService {
       };
     }
 
-    const accessToken = await this.applySessionJwtOnRes(user, res);
-    const refreshToken = await this.applyRefreshJwtOnRes(user, res);
+    const accessToken = await this.applySessionJwtOnRes(user, res, rememberMe);
+    const refreshToken = await this.applyRefreshJwtOnRes(user, res, rememberMe);
 
     if (this.authOptions.session.customResponse) {
       return this.authOptions.session.customResponse(
@@ -74,7 +86,10 @@ export class AuthService {
   }
 
   async twoFa(user: Express.User, req: Request, res: Response) {
-    const code = (user as any)._TWOFA_CODE;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const code: string = (user as any)._TWOFA_CODE;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const rememberMe: boolean = (user as any)._REMEMBER_ME;
 
     if (!code) throw new AuthListException([new InternalAuthError()]);
 
@@ -83,8 +98,8 @@ export class AuthService {
     );
     if (!isValidToken) throw new AuthListException([new InvalidTwoFaCode()]);
 
-    const accessToken = await this.applySessionJwtOnRes(user, res);
-    const refreshToken = await this.applyRefreshJwtOnRes(user, res);
+    const accessToken = await this.applySessionJwtOnRes(user, res, rememberMe);
+    const refreshToken = await this.applyRefreshJwtOnRes(user, res, rememberMe);
 
     if (this.authOptions.login.twoFa?.customResponse) {
       return this.authOptions.login.twoFa.customResponse(
@@ -102,27 +117,25 @@ export class AuthService {
     };
   }
 
-  async register(req: Request, res: Response) {
-    console.log('NOT_IMPLEMENTED');
-  }
-
   async refresh(req: Request, res: Response) {
-    const refreshId = (req.user as any)._REFRESH_TOKEN;
+    const {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      _REMEMBER_ME: rememberMe,
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      _REFRESH_TOKEN: refreshId,
+      ...user
+    } = req.user;
     if (!refreshId) throw new AuthListException([new InternalAuthError()]);
-
-    const user = await this.authOptions.refresh.find(refreshId);
-    if (!user) {
-      const e = new InvalidJwtRefresh();
-      throw new AuthListException([e]);
-    }
 
     await this.authOptions.refresh.delete(refreshId);
 
-    const accessToken = await this.applySessionJwtOnRes(user, res);
-    const refreshToken = await this.applyRefreshJwtOnRes(user, res);
+    const accessToken = await this.applySessionJwtOnRes(user, res, rememberMe);
+    const refreshToken = await this.applyRefreshJwtOnRes(user, res, rememberMe);
 
     if (this.authOptions.refresh.customResponse) {
-      return this.authOptions.session.customResponse(
+      return this.authOptions.refresh.customResponse(
         req,
         res,
         accessToken,
@@ -143,7 +156,8 @@ export class AuthService {
 
   private async applySessionJwtOnRes(
     user: Express.User,
-    res: Response
+    res: Response,
+    rememberMe: boolean
   ): Promise<string> {
     const sessionPayload = { sub: user.id, id: generate(32) };
     await this.authOptions.session.save(sessionPayload.id, user);
@@ -152,31 +166,38 @@ export class AuthService {
       expiresIn: this.authOptions.session.lifetime,
     });
 
-    res.cookie(
-      this.authOptions.session.cookie.name,
-      accessToken,
-      this.authOptions.session.cookie
-    );
+    res.cookie(this.authOptions.session.cookie.name, accessToken, {
+      ...this.authOptions.session.cookie,
+      expires: rememberMe
+        ? new Date(
+            Date.now() + this.authOptions.session.cookie.expires.getTime()
+          )
+        : undefined,
+    });
 
     return accessToken;
   }
 
   private async applyRefreshJwtOnRes(
     user: Express.User,
-    res: Response
+    res: Response,
+    rememberMe: boolean
   ): Promise<string> {
     const refreshPayload = { id: generate(32) };
-    await this.authOptions.refresh.save(refreshPayload.id, user);
+    await this.authOptions.refresh.save(refreshPayload.id, user, rememberMe);
     const refreshToken = this.jwtRefreshService.sign(refreshPayload, {
       secret: this.authOptions.refresh.secret,
       expiresIn: this.authOptions.refresh.lifetime,
     });
 
-    res.cookie(
-      this.authOptions.refresh.cookie.name,
-      refreshToken,
-      this.authOptions.refresh.cookie
-    );
+    res.cookie(this.authOptions.refresh.cookie.name, refreshToken, {
+      ...this.authOptions.refresh.cookie,
+      expires: rememberMe
+        ? new Date(
+            Date.now() + this.authOptions.refresh.cookie.expires.getTime()
+          )
+        : undefined,
+    });
 
     return refreshToken;
   }

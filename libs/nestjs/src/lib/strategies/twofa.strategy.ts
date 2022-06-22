@@ -16,7 +16,7 @@ import { AUTH_MODULE_OPTIONS } from '../constants';
 export class TwofaStrategy extends PassportStrategy(Strategy, 'twofa') {
   constructor(
     @Inject(AUTH_MODULE_OPTIONS)
-    private readonly authOptions: AuthOptions
+    private readonly authOptions: AuthOptions<Express.User>
   ) {
     super();
   }
@@ -36,7 +36,11 @@ export class TwofaStrategy extends PassportStrategy(Strategy, 'twofa') {
     if (!user) return [null, new InvalidTwoFaToken()];
 
     return [
-      { ...user, _TWOFA_CODE: new TwoFaCode(code) } as Express.User,
+      {
+        ...user.user,
+        _TWOFA_CODE: new TwoFaCode(code),
+        _REMEMBER_ME: user.rememberMe,
+      } as Express.User,
       null,
     ];
   }

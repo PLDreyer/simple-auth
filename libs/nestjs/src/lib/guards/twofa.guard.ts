@@ -7,7 +7,7 @@ import { AUTH_MODULE_OPTIONS } from '../constants';
 export class TwoFaAuthGuard extends AuthGuard(['twofa']) {
   constructor(
     @Inject(AUTH_MODULE_OPTIONS)
-    private readonly authOptions: AuthOptions
+    private readonly authOptions: AuthOptions<Express.User>
   ) {
     super();
   }

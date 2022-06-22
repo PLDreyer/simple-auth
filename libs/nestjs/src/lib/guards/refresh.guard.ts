@@ -15,7 +15,7 @@ import {
 export class RefreshAuthGuard extends AuthGuard('refresh') {
   constructor(
     @Inject(AUTH_MODULE_OPTIONS)
-    private readonly authOptions: AuthOptions
+    private readonly authOptions: AuthOptions<Express.User>
   ) {
     super();
   }

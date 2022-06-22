@@ -35,7 +35,7 @@ declare global {
 export class AuthModule implements NestModule {
   constructor(
     @Inject(AUTH_MODULE_OPTIONS)
-    private readonly authOptions: AuthOptions
+    private readonly authOptions: AuthOptions<Express.User>
   ) {}
 
   configure(consumer: MiddlewareConsumer) {
@@ -49,7 +49,7 @@ export class AuthModule implements NestModule {
   }
 
   public static forRootAsync(
-    options: AsyncAuthOptions<AuthOptions>
+    options: AsyncAuthOptions<AuthOptions<Express.User>>
   ): DynamicModule {
     return {
       global: true,
@@ -59,7 +59,7 @@ export class AuthModule implements NestModule {
         JwtSessionModule.registerAsync({
           imports: [AuthConfigModule.forRootAsync(options)],
           useFactory: async (
-            authOptions: AuthOptions
+            authOptions: AuthOptions<Express.User>
           ): Promise<JwtModuleOptions> => {
             return {
               secret: authOptions.session.secret,
@@ -78,7 +78,7 @@ export class AuthModule implements NestModule {
         JwtRefreshModule.registerAsync({
           imports: [AuthConfigModule.forRootAsync(options)],
           useFactory: async (
-            authOptions: AuthOptions
+            authOptions: AuthOptions<Express.User>
           ): Promise<JwtModuleOptions> => {
             return {
               secret: authOptions.refresh.secret,

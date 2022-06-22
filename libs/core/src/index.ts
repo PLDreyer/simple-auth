@@ -7,4 +7,3 @@ export * from './lib/parser';
 export * from './lib/refresh';
 export * from './lib/session';
 export * from './lib/twofa';
-export * from './lib/endpoints';

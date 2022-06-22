@@ -4,8 +4,8 @@ import { ApiKeyOptions } from './apikey';
 import { RefreshOptions } from './refresh';
 import { LoginOptions } from './login';
 import { ParserOptions } from './parser';
-import { EndpointOptions } from './endpoints';
 
+// TODO declare global express needed ?
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
@@ -14,12 +14,34 @@ declare global {
   }
 }
 
-export type AuthOptions = {
-  apiKey?: ApiKeyOptions;
-  login: LoginOptions;
-  session?: SessionOptions;
-  refresh?: RefreshOptions;
-  parser?: ParserOptions;
-  endpoints?: EndpointOptions;
+/**
+ * AuthModule options
+ */
+export type AuthOptions<U> = {
+  /**
+   * Options for api key
+   * To disable api key handling skip configuration
+   */
+  apiKey?: ApiKeyOptions<U>;
+  /**
+   * Options for login
+   */
+  login: LoginOptions<U>;
+  /**
+   * Options for sessions
+   */
+  session: SessionOptions<U>;
+  /**
+   * Options for refresh
+   */
+  refresh: RefreshOptions<U>;
+  /**
+   * Options for parser
+   */
+  parser: ParserOptions;
+  /**
+   * Error handler
+   * @param errors AuthListException
+   */
   error?: (errors: AuthListException) => Promise<never>;
 };

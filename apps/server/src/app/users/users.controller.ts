@@ -10,6 +10,7 @@ export class UsersController {
   @UseGuards(GeneralAuthGuard)
   @Get('me')
   async me(@Req() req: Request) {
+    console.log('YEAH');
     return this.usersService.findOneUser(req.user.id);
   }
 }

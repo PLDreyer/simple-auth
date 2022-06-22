@@ -1,15 +1,35 @@
 import { Request, Response } from 'express';
 import { TwoFaOptions } from './twofa';
+import { LoginHandler } from './handler';
 
-export type LoginMethods = {
-  find: (username: string, password: string) => Promise<Express.User | null>;
-};
-
-export type LoginOptions = {
+/**
+ * Login options
+ */
+export type LoginOptions<U> = {
+  /**
+   * User identifier field to look for in body
+   */
   usernameField?: string;
+  /**
+   * User password field to look for in body
+   */
   passwordField?: string;
-  find: LoginMethods['find'];
-  twoFa?: TwoFaOptions;
+  /**
+   * Handler for login action
+   */
+  find: LoginHandler<U>['findLogin'];
+  /**
+   * 2Fa options
+   */
+  twoFa?: TwoFaOptions<U>;
+  /**
+   * Custom response after login handler
+   * @param req Request express request
+   * @param res Response express response
+   * @param accessToken string created access token
+   * @param refreshToken string created refresh token
+   * @returns Promise<unknown> Object to return
+   */
   customResponse?: (
     req: Request,
     res: Response,

@@ -1,10 +1,4 @@
-import {
-  ExecutionContext,
-  Inject,
-  Injectable,
-  Res,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { ExecutionContext, Inject, Injectable } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AUTH_MODULE_OPTIONS } from '../constants';
 import { AuthError, AuthOptions } from '@simple-auth/core';
@@ -13,7 +7,7 @@ import { AuthError, AuthOptions } from '@simple-auth/core';
 export class KeyAuthGuard extends AuthGuard('key') {
   constructor(
     @Inject(AUTH_MODULE_OPTIONS)
-    private readonly authOptions: AuthOptions
+    private readonly authOptions: AuthOptions<Express.User>
   ) {
     super();
   }
@@ -22,9 +16,9 @@ export class KeyAuthGuard extends AuthGuard('key') {
     error: unknown,
     user: Express.User,
     info: AuthError,
-    ctx: ExecutionContext,
-    status: unknown
-  ): any {
+    _ctx: ExecutionContext,
+    _status: unknown
+  ) {
     // You can throw an exception based on either "info" or "err" arguments
     console.log('error: ', error);
     console.log('info: ', info);
@@ -33,6 +27,7 @@ export class KeyAuthGuard extends AuthGuard('key') {
       throw info;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return user as any;
   }
 }

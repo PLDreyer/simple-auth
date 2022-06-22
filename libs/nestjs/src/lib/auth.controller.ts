@@ -1,19 +1,6 @@
-import {
-  Controller,
-  Get,
-  Inject,
-  Post,
-  Req,
-  Res,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Inject, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { Request, Response } from 'express';
-import {
-  GeneralAuthGuard,
-  LocalAuthGuard,
-  RefreshAuthGuard,
-  TwoFaAuthGuard,
-} from './guards';
+import { LocalAuthGuard, RefreshAuthGuard, TwoFaAuthGuard } from './guards';
 import { AuthService } from './auth.service';
 import { AUTH_MODULE_OPTIONS } from './constants';
 import { AuthOptions } from '@simple-auth/core';
@@ -22,18 +9,9 @@ import { AuthOptions } from '@simple-auth/core';
 export class AuthController {
   constructor(
     @Inject(AUTH_MODULE_OPTIONS)
-    private readonly authOptions: AuthOptions,
+    private readonly authOptions: AuthOptions<Express.User>,
     private readonly authService: AuthService
   ) {}
-
-  @UseGuards(GeneralAuthGuard)
-  @Get('me')
-  async me(@Req() req: Request) {
-    if (this.authOptions.endpoints.me?.enabled)
-      return {
-        NOT: 'IMPLEMENTED',
-      };
-  }
 
   @UseGuards(LocalAuthGuard)
   @Post('login')
@@ -45,14 +23,6 @@ export class AuthController {
   @Post('twofa')
   async twoFa(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     return this.authService.twoFa(req.user, req, res);
-  }
-
-  @Post('register')
-  async register(
-    @Req() req: Request,
-    @Res({ passthrough: true }) res: Response
-  ) {
-    return this.authService.register(req, res);
   }
 
   @UseGuards(RefreshAuthGuard)

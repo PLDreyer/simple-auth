@@ -91,6 +91,10 @@ export class MissingUserCredentials extends UserError {
  * Apikey errors
  */
 export class ApiKeyError extends AuthenticationError {}
+
+/**
+ * Invalid api key (wrong format/type)
+ */
 export class InvalidApiKey extends ApiKeyError {
   constructor() {
     super(
@@ -101,6 +105,10 @@ export class InvalidApiKey extends ApiKeyError {
     );
   }
 }
+
+/**
+ * Missing api key
+ */
 export class MissingApiKey extends ApiKeyError {
   constructor() {
     super(
@@ -111,6 +119,10 @@ export class MissingApiKey extends ApiKeyError {
     );
   }
 }
+
+/**
+ * Multiple api keys found
+ */
 export class MultipleApiKeysFound extends ApiKeyError {
   constructor() {
     super(
@@ -121,6 +133,10 @@ export class MultipleApiKeysFound extends ApiKeyError {
     );
   }
 }
+
+/**
+ * Malformed api key
+ */
 export class MalformedApiKey extends ApiKeyError {
   constructor() {
     super(
@@ -136,6 +152,10 @@ export class MalformedApiKey extends ApiKeyError {
  * Session errors
  */
 export class JwtSessionError extends AuthenticationError {}
+
+/**
+ * Invalid jwt session (wrong format/type)
+ */
 export class InvalidJwtSession extends JwtSessionError {
   constructor() {
     super(
@@ -146,6 +166,10 @@ export class InvalidJwtSession extends JwtSessionError {
     );
   }
 }
+
+/**
+ * Missing jwt session/cookie
+ */
 export class MissingJwtSession extends JwtSessionError {
   constructor() {
     super(
@@ -156,6 +180,10 @@ export class MissingJwtSession extends JwtSessionError {
     );
   }
 }
+
+/**
+ * Malformed jwt session
+ */
 export class MalformedJwtSession extends JwtSessionError {
   constructor() {
     super(
@@ -166,6 +194,10 @@ export class MalformedJwtSession extends JwtSessionError {
     );
   }
 }
+
+/**
+ * Expired jwt session
+ */
 export class ExpiredJwtSession extends JwtSessionError {
   constructor() {
     super(
@@ -181,6 +213,10 @@ export class ExpiredJwtSession extends JwtSessionError {
  * Refresh errors
  */
 export class JwtRefreshError extends AuthenticationError {}
+
+/**
+ * Invalid jwt refresh (wrong format/type)
+ */
 export class InvalidJwtRefresh extends JwtRefreshError {
   constructor() {
     super(
@@ -191,6 +227,10 @@ export class InvalidJwtRefresh extends JwtRefreshError {
     );
   }
 }
+
+/**
+ * Missing jwt refresh/cookie
+ */
 export class MissingJwtRefresh extends JwtRefreshError {
   constructor() {
     super(
@@ -201,6 +241,10 @@ export class MissingJwtRefresh extends JwtRefreshError {
     );
   }
 }
+
+/**
+ * Malformed jwt refresh
+ */
 export class MalformedJwtRefresh extends JwtRefreshError {
   constructor() {
     super(
@@ -211,6 +255,10 @@ export class MalformedJwtRefresh extends JwtRefreshError {
     );
   }
 }
+
+/**
+ * Expired jwt refresh
+ */
 export class ExpiredJwtRefresh extends JwtRefreshError {
   constructor() {
     super(
@@ -226,6 +274,10 @@ export class ExpiredJwtRefresh extends JwtRefreshError {
  * TwoFa errors
  */
 export class TwoFaError extends AuthenticationError {}
+
+/**
+ * Invalid 2fa token (wrong format/type)
+ */
 export class InvalidTwoFaToken extends TwoFaError {
   constructor() {
     super(
@@ -236,6 +288,10 @@ export class InvalidTwoFaToken extends TwoFaError {
     );
   }
 }
+
+/**
+ * Invalid 2fa code (wrong format/type)
+ */
 export class InvalidTwoFaCode extends TwoFaError {
   constructor() {
     super(
@@ -246,6 +302,10 @@ export class InvalidTwoFaCode extends TwoFaError {
     );
   }
 }
+
+/**
+ * Missing 2fa token
+ */
 export class MissingTwoFaToken extends TwoFaError {
   constructor() {
     super(
@@ -256,6 +316,10 @@ export class MissingTwoFaToken extends TwoFaError {
     );
   }
 }
+
+/**
+ * Missing 2fa code
+ */
 export class MissingTwoFaCode extends TwoFaError {
   constructor() {
     super(
@@ -266,6 +330,10 @@ export class MissingTwoFaCode extends TwoFaError {
     );
   }
 }
+
+/**
+ * Malformed 2fa token
+ */
 export class MalformedTwoFaToken extends TwoFaError {
   constructor() {
     super(
@@ -276,6 +344,10 @@ export class MalformedTwoFaToken extends TwoFaError {
     );
   }
 }
+
+/**
+ * Expired 2fa token
+ */
 export class ExpiredTwoFaToken extends TwoFaError {
   constructor() {
     super(
