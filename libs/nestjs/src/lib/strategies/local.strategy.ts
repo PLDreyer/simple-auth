@@ -10,11 +10,12 @@ import {
   MissingUserCredentials,
 } from '@simple-auth/core';
 import { Request } from 'express';
+import { LoginService } from '../services/login.service';
 
 @Injectable()
 export class LocalStrategy extends PassportStrategy(Strategy, 'local') {
   constructor(
-    private readonly authService: AuthService,
+    private readonly loginService: LoginService,
     @Inject(AUTH_MODULE_OPTIONS)
     private readonly authOptions: AuthOptions
   ) {
@@ -27,7 +28,7 @@ export class LocalStrategy extends PassportStrategy(Strategy, 'local') {
     const [userFields, error] = this.getCredentialsFromReq(req);
     if (error) return [null, error];
 
-    const user = await this.authService.validateUser(
+    const user = await this.loginService.validateUser(
       userFields.username,
       userFields.password
     );

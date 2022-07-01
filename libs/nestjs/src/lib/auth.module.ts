@@ -21,6 +21,8 @@ import { AuthOptions } from '@simple-auth/core';
 import { JwtModuleOptions } from '@nestjs/jwt';
 import * as cookieParser from 'cookie-parser';
 import { AuthConfigModule } from './auth-config.module';
+import { DynamicRouterModule } from './dynamic-router.module';
+import { LoginModule } from './modules/login.module';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -55,25 +57,12 @@ export class AuthModule implements NestModule {
       global: true,
       module: AuthModule,
       imports: [
+        DynamicRouterModule.forRoot({
+          imports: [AuthConfigModule],
+        }),
         AuthConfigModule.forRootAsync(options),
-        JwtSessionModule.registerAsync({
-          imports: [AuthConfigModule.forRootAsync(options)],
-          useFactory: async (
-            authOptions: AuthOptions
-          ): Promise<JwtModuleOptions> => {
-            return {
-              secret: authOptions.session.secret,
-              signOptions: {
-                expiresIn: authOptions.session.lifetime,
-              },
-              verifyOptions: {
-                ignoreExpiration: false,
-                ignoreNotBefore: false,
-                maxAge: authOptions.session.lifetime,
-              },
-            };
-          },
-          inject: [AUTH_MODULE_OPTIONS],
+        LoginModule.registerAsync({
+          imports: [AuthConfigModule],
         }),
         JwtRefreshModule.registerAsync({
           imports: [AuthConfigModule.forRootAsync(options)],
@@ -102,7 +91,6 @@ export class AuthModule implements NestModule {
         RefreshStrategy,
         AuthService,
         KeyStrategy,
-        LocalStrategy,
         TwofaStrategy,
         AnonymousStrategy,
       ],
