@@ -15,8 +15,14 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
+      "@boilerplate/express": ["libs/express/src/index.ts"],
+      "@boilerplate/fastify": ["libs/fastify/src/index.ts"],
+      "@boilerplate/koa": ["libs/koa/src/index.ts"],
+      "@boilerplate/react": ["libs/react/src/index.ts"],
+      "@boilerplate/vue": ["libs/vue/src/index.ts"],
       "@simple-auth/core": ["libs/core/src/index.ts"],
       "@simple-auth/nestjs": ["libs/nestjs/src/index.ts"],
+      "@simple-auth/types": ["libs/types/src/index.ts"],
       "@simple-auth/web": ["libs/web/src/index.ts"]
     }
   },

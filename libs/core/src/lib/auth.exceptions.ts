@@ -21,8 +21,7 @@ import {
   MISSING_TWOFA_TOKEN,
   MISSING_USER,
   MULTIPLE_API_KEYS_FOUND,
-} from './messages.exceptions';
-import { TwoFaCode } from './miscellaneous';
+} from '@simple-auth/types';
 
 /**
  * Printable auth errors

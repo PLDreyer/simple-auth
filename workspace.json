@@ -3,8 +3,14 @@
   "version": 2,
   "projects": {
     "core": "libs/core",
+    "express": "libs/express",
+    "fastify": "libs/fastify",
+    "koa": "libs/koa",
     "nestjs": "libs/nestjs",
+    "react": "libs/react",
     "server": "apps/server",
+    "types": "libs/types",
+    "vue": "libs/vue",
     "web": "libs/web",
     "website": "apps/website",
     "website-e2e": "apps/website-e2e"

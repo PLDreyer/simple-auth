@@ -1,22 +1,18 @@
-import NxWelcome from './nx-welcome';
-import { Route, Routes, Link } from 'react-router-dom';
 import { useState } from 'react';
-import axios from 'axios';
-axios.defaults.withCredentials = true;
+import { Authenticator } from '@simple-auth/web';
 
 export function App() {
+  const authenticator = new Authenticator('http://localhost:8080');
+
   const [loginState, setLoginState] = useState(false);
-  const [twofaToken, setTwofaToken] = useState(undefined);
+  const [twofaToken, setTwofaToken] = useState('');
   const [userData, setUserData] = useState(undefined);
 
   const login = async () => {
-    const response = await axios.post('http://localhost:8080/auth/login', {
-      email: 'Max Mustermann',
-      password: '1234',
-    });
+    const response = await authenticator.login('Max Mustermann', '1234', true);
 
-    if (response.data.token) {
-      setTwofaToken(response.data.token);
+    if (response.token) {
+      setTwofaToken(response.token);
       return;
     }
 
@@ -24,21 +20,20 @@ export function App() {
   };
 
   const twofa = async () => {
-    const response = await axios.post('http://localhost:8080/auth/twofa', {
-      token: twofaToken,
-      code: 'test',
-    });
+    const response = await authenticator.twofa(twofaToken, 'test');
 
-    setTwofaToken(undefined);
+    setTwofaToken('');
     setLoginState(true);
   };
 
   const refresh = async () => {
-    const response = await axios.post('http://localhost:8080/auth/refresh', {});
+    const response = await authenticator.refresh();
   };
 
   const profile = async () => {
-    const response = await axios.get('http://localhost:8080/users/me');
+    const response = await authenticator.axios.get(
+      'http://localhost:8080/users/me'
+    );
     setUserData(response.data);
   };
 

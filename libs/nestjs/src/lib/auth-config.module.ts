@@ -5,6 +5,10 @@ import {
   AUTH_MODULE_OPTIONS_USER,
 } from './constants';
 import { AuthOptions } from '@simple-auth/core';
+import {
+  DEFAULT_PASSWORD_FIELD,
+  DEFAULT_USERNAME_FIELD,
+} from '@simple-auth/types';
 
 @Module({})
 export class AuthConfigModule {
@@ -56,7 +60,12 @@ export class AuthConfigModule {
   public static verifyLoginOptions(
     loginOptions: AuthOptions<Express.User>['login']
   ): AuthOptions<Express.User>['login'] {
-    return loginOptions;
+    return {
+      usernameField: loginOptions.usernameField ?? DEFAULT_USERNAME_FIELD,
+      passwordField: loginOptions.passwordField ?? DEFAULT_PASSWORD_FIELD,
+      find: loginOptions.find,
+      customResponse: loginOptions.customResponse,
+    };
   }
 
   public static verifySessionOptions(
