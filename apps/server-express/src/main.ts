@@ -53,6 +53,7 @@ const options: AuthOptions<Express.User, Request, Response> = {
       domain: 'localhost',
       path: '/',
     },
+    lifetime: 10,
     secret: 'session_secret',
     find: AuthService.findOneSession,
     delete: AuthService.deleteOneSession,

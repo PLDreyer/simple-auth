@@ -1,4 +1,4 @@
-import { ApiKeyHandler } from './handler';
+import type { ApiKeyHandler } from './handler';
 
 /**
  * Header configuration

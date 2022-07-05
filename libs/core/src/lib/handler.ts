@@ -153,7 +153,7 @@ export class Handler<U extends { id: string }, I, R> {
     return [
       {
         ...user.user,
-        _TWOFA_CODE: new TwoFaCode(code),
+        _TWOFA_CODE: code,
         _REMEMBER_ME: user.rememberMe,
       },
       null,
@@ -216,6 +216,7 @@ export class Handler<U extends { id: string }, I, R> {
       };
 
     const isValidCode = await this.authOptions.login.twoFa?.validateTwoFaCode(
+      user,
       code
     );
 
@@ -290,8 +291,6 @@ export class Handler<U extends { id: string }, I, R> {
       expiresIn: this.authOptions.session.lifetime,
     });
 
-    // TODO how to handle cookie management ?
-
     return accessToken;
   }
 
@@ -302,8 +301,6 @@ export class Handler<U extends { id: string }, I, R> {
     const refreshToken = sign(refreshPayload, this.authOptions.refresh.secret, {
       expiresIn: this.authOptions.refresh.lifetime,
     });
-
-    // TODO how to handle cookie management ?
 
     return refreshToken;
   }

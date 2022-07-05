@@ -1,8 +1,8 @@
-import { Application, Request, Response } from 'express';
-import { Handler } from '@simple-auth/core';
+import type { Application, Request, Response } from 'express';
+import type { Handler } from '@simple-auth/core';
+import type { AuthOptions } from '@simple-auth/types';
 import { AUTH_HANDLER } from './constants';
 import {
-  AuthOptions,
   MALFORMED_API_KEY,
   MISSING_API_KEY,
   MULTIPLE_API_KEYS_FOUND,

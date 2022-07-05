@@ -1,23 +1,18 @@
 import type { Request, Response, NextFunction } from 'express';
 import passport from 'passport';
 import {
-  EXPIRED_JWT_REFRESH,
   INTERNAL_AUTH_ERROR,
-  INVALID_JWT_REFRESH,
-  MALFORMED_JWT_REFRESH,
-  MISSING_JWT_REFRESH,
+  INVALID_USER_CREDENTIALS,
+  MISSING_USER_CREDENTIALS,
 } from '@simple-auth/types';
 
-export const RefreshGuard = () => {
+export const LocalGuard = () => {
   return (req: Request, res: Response, next: NextFunction) => {
-    passport.authenticate('refresh', (error, user, info) => {
+    passport.authenticate('local', (error, user, info) => {
       if (error || info) {
         switch (info) {
-          case MISSING_JWT_REFRESH:
-          case EXPIRED_JWT_REFRESH:
-          case INTERNAL_AUTH_ERROR:
-          case MALFORMED_JWT_REFRESH:
-          case INVALID_JWT_REFRESH:
+          case MISSING_USER_CREDENTIALS:
+          case INVALID_USER_CREDENTIALS:
             return next(info);
         }
       }

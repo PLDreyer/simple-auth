@@ -1,4 +1,4 @@
-import { TwoFaHandler } from './handler';
+import type { TwoFaHandler } from './handler';
 
 /**
  * 2FA options

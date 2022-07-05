@@ -1,5 +1,5 @@
-import { TwoFaOptions } from './twofa';
-import { LoginHandler } from './handler';
+import type { TwoFaOptions } from './twofa';
+import type { LoginHandler } from './handler';
 
 /**
  * Login options

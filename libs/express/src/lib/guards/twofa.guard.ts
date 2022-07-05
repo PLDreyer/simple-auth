@@ -1,3 +1,4 @@
+import type { Request, Response, NextFunction } from 'express';
 import passport from 'passport';
 import {
   EXPIRED_TWOFA_TOKEN,
@@ -10,7 +11,7 @@ import {
 } from '@simple-auth/types';
 
 export const TwofaGuard = () => {
-  return (req, res, next) => {
+  return (req: Request, res: Response, next: NextFunction) => {
     passport.authenticate('twofa', (error, user, info) => {
       if (error || info) {
         switch (info) {
@@ -23,6 +24,8 @@ export const TwofaGuard = () => {
             return next(info);
         }
       }
+      console.log('info: ', info);
+      console.log('errorrrr: ', error);
 
       if (!user) {
         return next(INTERNAL_AUTH_ERROR);

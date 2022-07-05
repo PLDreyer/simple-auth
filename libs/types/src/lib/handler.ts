@@ -74,8 +74,7 @@ export interface TwoFaHandler<U> {
    * @param code string code for 2fa (totp)
    * @returns Promise<boolean>;
    */
-  // TODO pass user along
-  validateTwoFaCode: (code: string) => Promise<boolean>;
+  validateTwoFaCode: (user: U, code: string) => Promise<boolean>;
 }
 
 /**

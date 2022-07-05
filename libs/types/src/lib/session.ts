@@ -1,4 +1,5 @@
-import { SessionHandler } from './handler';
+import type { SessionHandler } from './handler';
+import type { CookieOptions } from './constants';
 
 /**
  * Session options
@@ -19,41 +20,7 @@ export type SessionOptions<U, I, R> = {
   /**
    * Cookie settings for session token
    */
-  cookie?: {
-    /**
-     * Cookie name
-     */
-    name?: string;
-    /**
-     * Cookie secure (https)
-     */
-    secure?: boolean;
-    /**
-     * // TODO implement signed description
-     * Cookie signed
-     */
-    signed?: boolean;
-    /**
-     * Cookie http-only (no javascript interoperability)
-     */
-    httpOnly?: boolean;
-    /**
-     * Cookie domain to save at
-     */
-    domain?: string;
-    /**
-     * Cookie path to save at
-     */
-    path?: string;
-    /**
-     * Cookie expires
-     */
-    expires?: Date;
-    /**
-     * Cookie same site
-     */
-    sameSite?: 'lax' | 'strict' | 'none';
-  };
+  cookie?: CookieOptions;
   /**
    * Session JWT lifetime in seconds
    */

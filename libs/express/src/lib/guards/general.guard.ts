@@ -1,6 +1,8 @@
+import type { Request, Response, NextFunction } from 'express';
 import passport from 'passport';
 import {
-  EXPIRED_JWT_SESSION, INTERNAL_AUTH_ERROR,
+  EXPIRED_JWT_SESSION,
+  INTERNAL_AUTH_ERROR,
   INVALID_API_KEY,
   INVALID_JWT_SESSION,
   MALFORMED_API_KEY,
@@ -10,10 +12,10 @@ import {
 } from '@simple-auth/types';
 
 export const GeneralGuard = () => {
-  return (req, res, next) => {
+  return (req: Request, res: Response, next: NextFunction) => {
     passport.authenticate(['key', 'session'], (err, user, info) => {
       if (err || info) {
-        info.forEach((error) => {
+        for (const error of info) {
           switch (error) {
             case MALFORMED_API_KEY:
             case INVALID_API_KEY:
@@ -24,7 +26,7 @@ export const GeneralGuard = () => {
             case EXPIRED_JWT_SESSION:
               return next(error);
           }
-        });
+        }
 
         return next(INTERNAL_AUTH_ERROR);
       }

@@ -18,8 +18,12 @@ ___
 * 2FA TOTP (others come soon via plugins...)
 ___
 ### TODO
+#### In general
+* use type imports
+* enable lazy imports
+* catch handler errors
 #### Server libraries
-* implement plugin handler
+* implement plugin handler (tapable?)
 * save permissions in session
 * encode jwt payload possibility
 * authorization handler

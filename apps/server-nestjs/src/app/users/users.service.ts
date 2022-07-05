@@ -129,9 +129,8 @@ export class UsersService {
     return !!user.twoFaSecret;
   }
 
-  async validateTwoFaCode(code: string): Promise<boolean> {
-    // TODO
-    return true;
+  async validateTwoFaCode(user: Express.User, code: string): Promise<boolean> {
+    return user.twoFaSecret === code;
   }
 
   private debugHook() {
