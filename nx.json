@@ -28,7 +28,7 @@
       }
     ]
   },
-  "defaultProject": "server",
+  "defaultProject": "server-nestjs",
   "generators": {
     "@nrwl/react": {
       "application": {

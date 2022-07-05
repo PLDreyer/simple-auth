@@ -10,6 +10,8 @@ export const AUTH_MODULE_OPTIONS_USER = Symbol('AUTH_MODULE_OPTIONS_USER');
 
 export const AUTH_MODULE_OPTIONS = Symbol('AUTH_MODULE_OPTIONS');
 
+export const AUTH_HANDLER = Symbol('AUTH_HANDLER');
+
 export type AsyncAuthOptions<U> = {
   imports?: Array<
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

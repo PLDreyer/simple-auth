@@ -1,13 +1,15 @@
 import { ExecutionContext, Inject, Injectable } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { AuthError, AuthListException, AuthOptions } from '@simple-auth/core';
-import { AUTH_MODULE_OPTIONS } from '../constants';
+import { AuthError, AuthListException } from '../auth.exceptions';
+import { AUTH_HANDLER } from '../constants';
+import { Request, Response } from 'express';
+import { Handler } from '@simple-auth/core';
 
 @Injectable()
 export class TwoFaAuthGuard extends AuthGuard(['twofa']) {
   constructor(
-    @Inject(AUTH_MODULE_OPTIONS)
-    private readonly authOptions: AuthOptions<Express.User>
+    @Inject(AUTH_HANDLER)
+    private readonly authHandler: Handler<Express.User, Request, Response>
   ) {
     super();
   }
@@ -21,7 +23,8 @@ export class TwoFaAuthGuard extends AuthGuard(['twofa']) {
   public handleRequest(error, user, info: AuthError) {
     if (error || info) {
       const exception = new AuthListException([info]);
-      if (this.authOptions.error) return this.authOptions.error(exception);
+      if (this.authHandler.options.error)
+        return this.authHandler.options.error(exception);
       throw exception;
     }
 

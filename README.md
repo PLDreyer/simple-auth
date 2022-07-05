@@ -1,94 +1,163 @@
+# Simple-Auth
+#### Authentication and Authorization made easy
 
+___
+### Why  ?
+The topic of authentication/authorization comes up again and again.
+Every time, everything has to be implemented again from the beginning, and it's no different here than with crypto:  
+*never do your own crypto*.
 
-# Boilerplate
+These packages are intended to remedy the situation and use a standard that is quick to implement and maintain.
+___
+### Features
+* api keys
+* *default* save access and refresh token
+* *default* save cookie management
+* stateless permissions
+* encoded jwt content (session)
+* 2FA TOTP (others come soon via plugins...)
+___
+### TODO
+#### Server libraries
+* implement plugin handler
+* save permissions in session
+* encode jwt payload possibility
+* authorization handler
+  * with entity ownership check possibilities
+* reduce database round trips (AsyncStorage?)
+* logout
+#### Client libraries
+* implement refresh interceptor
+  * custom interceptor activation
+___
+### Packages
+* @simple-auth/nestjs
+  * Library for nestjs server
+* @simple-auth/express
+  * Library for express server
+* @simple-auth/web
+  * Library for client
 
-This project was generated using [Nx](https://nx.dev).
+### Routes
+* Get access token and refresh token  
+  [POST] /auth/login
+  * body
+    * usernameField: string
+    * passwordField: string
+    * rememberMe: boolean
+* Verify 2FA TOTP code  
+  [POST] /auth/twofa
+  * body
+    * token: string
+    * code: string
+* Get with refresh token new access token and refresh token  
+  [POST] /auth/refresh
+---
+### Documentation
+TODO
 
-<p style="text-align: center;"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="450"></p>
+---
+### Get Started
+####  Library options (server)
+```TypeScript
+const options = {
+    apiKey: {
+        body: {
+            names: ["key-1", "key2"], // names to look at for api keys in body
+        },
+        query: {
+            names: ["key-3", "key-4"], // names to look at for api keys in query
+        },
+        header: {
+            names: ["key-5", "key-6"], // names to look at for api keys in header
+        },
+        find: (key: string) => {
+            // return user;
+            return {};
+        },
+    },
+    login: {
+        usernameField: "email", // field to use for user identification from body
+        passwordField: "password", // field to use for password from body
+        find: (username: string, password: string) => {
+            // return user
+        },
+        twoFa: {
+            saveTwoFaSessionToken: (id: string, user: any, rememberMe: boolean) => {
+                // save twofa token id and rememberMe for user
+            },
+            findTwoFaSessionToken: (id: string) => {
+                // return {user, rememberMe}
+            },
+            deleteTwoFaSessionToken: (id: string) => {
+                // delete twofa token
+            },
+            validateTwoFaCode: (code: string) => {
+                // validate totp code for user
+            },
+            shouldValidateTwoFa: (user: any) => {
+                // return boolean
+            }
+        }
+    },
+    session: {
+        cookie: {
+            name: "session_name",
+            signed: true,
+            secure: true,
+            httpOnly: true,
+            domain: "localhost",
+            path: "/",
+            sameSite: "lax",
+        },
+        lifetime: 15 * 60, // lifetime for jwt and cookie (15min)
+        encoded: true, // encode content from session jwt
+        secret: "session_secret", // secret for session jwt
+        find: (id: string) => {
+            // return user with session id
+        },
+        delete: (id: string) => {
+            // delete session id from user
+        },
+        save: (id: string, user: any) => {
+            // save session with id for user
+        },
+        customResponse: (req: I, res: R, accessToken: string, refreshToken: string) => {
+          // return custom response    
+        },
+    },
+    refresh: {
+        cookie: {
+            name: "refresh_name",
+            signed: true,
+            secure: true,
+            httpOnly: true,
+            domain: "localhost",
+            path: "/",
+            sameSite: "lax",
+        },
+        lifetime: 14 * 24 * 60 * 60, // lifetime for jwt and cookie (14 days)
+        secret: "refresh_secret", // secret for refresh jwt
+        find: (id: string) => {
+            // return user with refresh id
+        },
+        delete: (id: string) => {
+            // delete refresh id from user
+        },
+        save: (id: string, user: any, rememberMe: boolean) => {
+            // save refresh id and rememberMe for user
+        },
+        customResponse: (req: I, res: R, accessToken: string, refreshToken: string) => {
+            // return custom response    
+        },
+    },
+    parser: {
+        cookieSecret: "very_secure" // cookie-parser secret for signed cookies
+    },
+    error: (errors: any) => {
+        // handle errors
+    }
+}
+```
 
-🔎 **Smart, Fast and Extensible Build System**
-
-## Adding capabilities to your workspace
-
-Nx supports many plugins which add capabilities for developing different types of applications and different tools.
-
-These capabilities include generating applications, libraries, etc as well as the devtools to test, and build projects as well.
-
-Below are our core plugins:
-
-- [React](https://reactjs.org)
-  - `npm install --save-dev @nrwl/react`
-- Web (no framework frontends)
-  - `npm install --save-dev @nrwl/web`
-- [Angular](https://angular.io)
-  - `npm install --save-dev @nrwl/angular`
-- [Nest](https://nestjs.com)
-  - `npm install --save-dev @nrwl/nest`
-- [Express](https://expressjs.com)
-  - `npm install --save-dev @nrwl/express`
-- [Node](https://nodejs.org)
-  - `npm install --save-dev @nrwl/node`
-
-There are also many [community plugins](https://nx.dev/community) you could add.
-
-## Generate an application
-
-Run `nx g @nrwl/react:app my-app` to generate an application.
-
-> You can use any of the plugins above to generate applications as well.
-
-When using Nx, you can create multiple applications and libraries in the same workspace.
-
-## Generate a library
-
-Run `nx g @nrwl/react:lib my-lib` to generate a library.
-
-> You can also use any of the plugins above to generate libraries as well.
-
-Libraries are shareable across libraries and applications. They can be imported from `@boilerplate/mylib`.
-
-## Development server
-
-Run `nx serve my-app` for a dev server. Navigate to http://localhost:4200/. The app will automatically reload if you change any of the source files.
-
-## Code scaffolding
-
-Run `nx g @nrwl/react:component my-component --project=my-app` to generate a new component.
-
-## Build
-
-Run `nx build my-app` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
-
-## Running unit tests
-
-Run `nx test my-app` to execute the unit tests via [Jest](https://jestjs.io).
-
-Run `nx affected:test` to execute the unit tests affected by a change.
-
-## Running end-to-end tests
-
-Run `nx e2e my-app` to execute the end-to-end tests via [Cypress](https://www.cypress.io).
-
-Run `nx affected:e2e` to execute the end-to-end tests affected by a change.
-
-## Understand your workspace
-
-Run `nx graph` to see a diagram of the dependencies of your projects.
-
-## Further help
-
-Visit the [Nx Documentation](https://nx.dev) to learn more.
-
-
-
-## ☁ Nx Cloud
-
-### Distributed Computation Caching & Distributed Task Execution
-
-<p style="text-align: center;"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-cloud-card.png"></p>
-
-Nx Cloud pairs with Nx in order to enable you to build and test code more rapidly, by up to 10 times. Even teams that are new to Nx can connect to Nx Cloud and start saving time instantly.
-
-Teams using Nx gain the advantage of building full-stack applications with their preferred framework alongside Nx’s advanced code generation and project dependency graph, plus a unified experience for both frontend and backend developers.
-
-Visit [Nx Cloud](https://nx.app/) to learn more.
+#### Library options (client)

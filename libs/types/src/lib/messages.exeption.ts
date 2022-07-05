@@ -1,6 +1,6 @@
 export const INTERNAL_AUTH_ERROR = 'internal auth error';
 export const INVALID_USER_CREDENTIALS = 'invalid user credentials';
-export const MISSING_USER = 'missing user';
+export const MISSING_USER_CREDENTIALS = 'missing user';
 export const INVALID_API_KEY = 'invalid api key';
 export const MISSING_API_KEY = 'missing api key';
 export const MULTIPLE_API_KEYS_FOUND = 'multiple api keys found';

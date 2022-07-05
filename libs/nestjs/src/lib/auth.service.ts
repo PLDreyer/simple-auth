@@ -6,11 +6,10 @@ import { JwtRefreshService, JwtSessionService } from './jwt/jwt.constants';
 import { generate } from 'rand-token';
 import {
   AuthListException,
-  AuthOptions,
   InternalAuthError,
-  InvalidJwtRefresh,
   InvalidTwoFaCode,
-} from '@simple-auth/core';
+} from './auth.exceptions';
+import { AuthOptions } from '@simple-auth/types';
 
 @Injectable()
 export class AuthService {
@@ -20,7 +19,7 @@ export class AuthService {
     @Inject(JwtRefreshService)
     private readonly jwtRefreshService: JwtService,
     @Inject(AUTH_MODULE_OPTIONS)
-    private readonly authOptions: AuthOptions<Express.User>
+    private readonly authOptions: AuthOptions<Express.User, Request, Response>
   ) {}
 
   async validateUser(username: string, pass: string): Promise<any> {

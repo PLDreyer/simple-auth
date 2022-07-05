@@ -1,28 +1,29 @@
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { Strategy } from 'passport-custom';
 import { PassportStrategy } from '@nestjs/passport';
 import { Request } from 'express';
-import { AUTH_MODULE_OPTIONS } from '../constants';
+import { AUTH_HANDLER } from '../constants';
 import {
   AuthError,
-  AuthOptions,
   ExpiredJwtSession,
   InternalAuthError,
   InvalidJwtSession,
   MalformedJwtSession,
   MissingJwtSession,
-} from '@simple-auth/core';
-import { JwtSessionService } from '../jwt/jwt.constants';
-import { JwtService } from '@nestjs/jwt';
-import { TokenExpiredError } from 'jsonwebtoken';
+} from '../auth.exceptions';
+import { Handler } from '@simple-auth/core';
+import {
+  EXPIRED_JWT_SESSION,
+  INVALID_JWT_SESSION,
+  MALFORMED_JWT_SESSION,
+  MISSING_JWT_SESSION,
+} from '@simple-auth/types';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor(
-    @Inject(AUTH_MODULE_OPTIONS)
-    private readonly authOptions: AuthOptions<Express.User>,
-    @Inject(JwtSessionService)
-    private readonly jwtService: JwtService
+    @Inject(AUTH_HANDLER)
+    private readonly authHandler: Handler<Express.User, Request, Response>
   ) {
     super();
   }
@@ -34,61 +35,49 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   async validate(
     req: Request
   ): Promise<[Express.User | null, AuthError | null]> {
-    const jwt = await this.getJwtFromCookie(req);
-    if (!jwt) return [null, new MissingJwtSession()];
+    const [jwt, jwtError] = await this.getJwtFromCookie(req);
+    if (!jwtError) return [null, new InvalidJwtSession()];
 
-    const [payload, error] = await this.getJwtPayload(jwt);
-    if (error) return [null, error];
+    const [user, error] = await this.authHandler.getUserWithSessionJwt(jwt);
 
-    if (!payload.id) return [null, new InvalidJwtSession()];
-
-    if (typeof payload.id !== 'string')
-      return [null, new MalformedJwtSession()];
-
-    const user = await this.authOptions.session.find(payload.id);
-    if (!user) return [null, new InvalidJwtSession()];
+    if (!user) {
+      switch (error) {
+        case MISSING_JWT_SESSION:
+          return [null, new MissingJwtSession()];
+        case EXPIRED_JWT_SESSION:
+          return [null, new ExpiredJwtSession()];
+        case INVALID_JWT_SESSION:
+          return [null, new InvalidJwtSession()];
+        case MALFORMED_JWT_SESSION:
+          return [null, new MalformedJwtSession()];
+        default:
+          return [null, new InternalAuthError()];
+      }
+    }
 
     return [user, null];
   }
 
-  private async getJwtFromCookie(req: Request): Promise<string | null> {
-    console.log('req.cookies: ', req.cookies);
-    console.log('req.signedCookies: ', req.signedCookies);
-    const cookieName = this.authOptions.session.cookie.name;
-    let cookie = this.authOptions.session.cookie.signed
+  private async getJwtFromCookie(
+    req: Request
+  ): Promise<[string | null, AuthError | null]> {
+    const cookieName = this.authHandler.options.session.cookie.name;
+    let cookie = this.authHandler.options.session.cookie.signed
       ? req.signedCookies[cookieName]
       : req.cookies[cookieName];
 
     if (!cookie) {
-      cookie = this.authOptions.session.cookie.signed
+      cookie = this.authHandler.options.session.cookie.signed
         ? req.cookies[cookieName]
         : req.signedCookies[cookieName];
     }
 
-    console.log('cookie: ', cookie);
-
-    if (!cookie) return null;
-
-    return cookie;
-  }
-
-  private async getJwtPayload(
-    jwt: string
-  ): Promise<[Record<string, unknown> | null, AuthError | null]> {
-    let payload;
-
-    try {
-      payload = await this.jwtService.verify(jwt, {
-        secret: this.authOptions.session.secret,
-        ignoreExpiration: false,
-      });
-    } catch (e) {
-      if (e instanceof TokenExpiredError)
-        return [null, new ExpiredJwtSession()];
-
-      return [null, new InternalAuthError()];
+    if (cookie === false && this.authHandler.options.session.cookie.signed) {
+      return [null, new InvalidJwtSession()];
     }
 
-    return [payload, null];
+    if (!cookie) return [null, null];
+
+    return [cookie, null];
   }
 }

@@ -1,52 +1,40 @@
 import { Strategy } from 'passport-custom';
 import { PassportStrategy } from '@nestjs/passport';
 import { Inject, Injectable } from '@nestjs/common';
-import { AuthService } from '../auth.service';
-import { AUTH_MODULE_OPTIONS } from '../constants';
+import { AUTH_HANDLER } from '../constants';
+import { InternalAuthError, MissingUserCredentials } from '../auth.exceptions';
+import { Request, Response } from 'express';
+import { Handler } from '@simple-auth/core';
 import {
-  AuthError,
-  AuthOptions,
-  InvalidUserCredentials,
-  MissingUserCredentials,
-} from '@simple-auth/core';
-import { Request } from 'express';
+  INVALID_USER_CREDENTIALS,
+  MISSING_USER_CREDENTIALS,
+} from '@simple-auth/types';
 
 @Injectable()
 export class LocalStrategy extends PassportStrategy(Strategy, 'local') {
   constructor(
-    private readonly authService: AuthService,
-    @Inject(AUTH_MODULE_OPTIONS)
-    private readonly authOptions: AuthOptions<Express.User>
+    @Inject(AUTH_HANDLER)
+    private readonly authHandler: Handler<Express.User, Request, Response>
   ) {
     super();
   }
 
-  async validate(
-    req: Request
-  ): Promise<[Express.User | null, AuthError | null]> {
-    const [userFields, error] = this.getCredentialsFromReq(req);
-    if (error) return [null, error];
-
-    const user = await this.authService.validateUser(
-      userFields.username,
-      userFields.password
+  async validate(req: Request) {
+    const [user, error] = await this.authHandler.getUserWithCredentials(
+      req.body
     );
 
     if (!user) {
-      return [null, new InvalidUserCredentials()];
+      switch (error) {
+        case MISSING_USER_CREDENTIALS:
+          return [null, new MissingUserCredentials()];
+        case INVALID_USER_CREDENTIALS:
+          return [null, new MissingUserCredentials()];
+        default:
+          return [null, new InternalAuthError()];
+      }
     }
 
     return [user, null];
-  }
-
-  private getCredentialsFromReq(
-    req: Request
-  ): [{ username: string; password: string } | null, AuthError | null] {
-    const username = req?.body[this.authOptions.login.usernameField];
-    const password = req?.body[this.authOptions.login.passwordField];
-
-    if (!username || !password) return [null, new MissingUserCredentials()];
-
-    return [{ username, password }, null];
   }
 }

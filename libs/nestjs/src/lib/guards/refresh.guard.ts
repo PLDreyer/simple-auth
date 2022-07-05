@@ -1,21 +1,21 @@
 import { ExecutionContext, Inject, Injectable } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { AUTH_MODULE_OPTIONS } from '../constants';
+import { AUTH_HANDLER } from '../constants';
 import {
   AuthError,
   AuthListException,
-  AuthOptions,
   ExpiredJwtRefresh,
   InternalAuthError,
   InvalidJwtRefresh,
-  RefreshToken,
-} from '@simple-auth/core';
+} from '../auth.exceptions';
+import { Request, Response } from 'express';
+import { Handler } from '@simple-auth/core';
 
 @Injectable()
 export class RefreshAuthGuard extends AuthGuard('refresh') {
   constructor(
-    @Inject(AUTH_MODULE_OPTIONS)
-    private readonly authOptions: AuthOptions<Express.User>
+    @Inject(AUTH_HANDLER)
+    private readonly authHandler: Handler<Express.User, Request, Response>
   ) {
     super();
   }
@@ -28,7 +28,7 @@ export class RefreshAuthGuard extends AuthGuard('refresh') {
 
   public handleRequest(err, user, info) {
     // You can throw an exception based on either "info" or "err" arguments
-    if (err || (info && !(info instanceof RefreshToken))) {
+    if (err || info) {
       const errors: Array<AuthError> = [];
 
       if (info instanceof ExpiredJwtRefresh) errors.push(info);
@@ -37,7 +37,8 @@ export class RefreshAuthGuard extends AuthGuard('refresh') {
       if (errors.length === 0) errors.push(new InternalAuthError());
 
       const exception = new AuthListException(errors);
-      if (this.authOptions.error) return this.authOptions.error(exception);
+      if (this.authHandler.options.error)
+        return this.authHandler.options.error(exception);
 
       throw exception;
     }

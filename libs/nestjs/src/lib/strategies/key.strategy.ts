@@ -1,22 +1,23 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Strategy } from 'passport-custom';
 import { PassportStrategy } from '@nestjs/passport';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import {
-  AuthError,
-  AuthOptions,
+  InternalAuthError,
   InvalidApiKey,
   MalformedApiKey,
   MissingApiKey,
   MultipleApiKeysFound,
-} from '@simple-auth/core';
-import { AUTH_MODULE_OPTIONS } from '../constants';
+} from '../auth.exceptions';
+import { AUTH_HANDLER } from '../constants';
+import { Handler } from '@simple-auth/core';
+import { INVALID_API_KEY, MISSING_API_KEY } from '@simple-auth/types';
 
 @Injectable()
 export class KeyStrategy extends PassportStrategy(Strategy, 'key') {
   constructor(
-    @Inject(AUTH_MODULE_OPTIONS)
-    private readonly authOptions: AuthOptions<Express.User>
+    @Inject(AUTH_HANDLER)
+    private readonly authHandler: Handler<Express.User, Request, Response>
   ) {
     super();
   }
@@ -25,22 +26,28 @@ export class KeyStrategy extends PassportStrategy(Strategy, 'key') {
    * @param req
    * @returns user, info, status
    */
-  async validate(
-    req: Request
-  ): Promise<[Express.User | null, AuthError | null]> {
-    if (!this.authOptions.apiKey) return [null, null];
+  async validate(req: Request) {
+    if (!this.authHandler.options.apiKey) return [null, null];
 
     const apiKey = this.getApiKeyFromFields(req);
-    if (!apiKey) return [null, new MissingApiKey()];
+    const [user, error] = await this.authHandler.getUserWithApiKey(apiKey);
 
-    const user = await this.authOptions.apiKey.find(apiKey);
-    if (!user) return [null, new InvalidApiKey()];
+    if (!user) {
+      switch (error) {
+        case MISSING_API_KEY:
+          return [null, new MissingApiKey()];
+        case INVALID_API_KEY:
+          return [null, new InvalidApiKey()];
+        default:
+          return [null, new InternalAuthError()];
+      }
+    }
 
     return [user, null];
   }
 
   private getApiKeyFromFields(req: Request): string | undefined {
-    const { header, query, body } = this.authOptions.apiKey;
+    const { header, query, body } = this.authHandler.options.apiKey;
 
     for (const name of header.names) {
       const headerValue = req.header(name);

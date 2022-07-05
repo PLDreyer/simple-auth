@@ -8,11 +8,12 @@
     "koa": "libs/koa",
     "nestjs": "libs/nestjs",
     "react": "libs/react",
-    "server": "apps/server",
+    "server-nestjs": "apps/server-nestjs",
+    "server-express": "apps/server-express",
     "types": "libs/types",
     "vue": "libs/vue",
     "web": "libs/web",
-    "website": "apps/website",
-    "website-e2e": "apps/website-e2e"
+    "website-base": "apps/website-base",
+    "website-base-e2e": "apps/website-base-e2e"
   }
 }

@@ -1,28 +1,30 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Strategy } from 'passport-custom';
 import { PassportStrategy } from '@nestjs/passport';
-import { Request } from 'express';
-import { AUTH_MODULE_OPTIONS } from '../constants';
+import { Request, Response } from 'express';
+import { AUTH_HANDLER } from '../constants';
 import {
   AuthError,
-  AuthOptions,
   ExpiredJwtRefresh,
   InternalAuthError,
   InvalidJwtRefresh,
   MalformedJwtRefresh,
   MissingJwtRefresh,
-} from '@simple-auth/core';
-import { JwtRefreshService } from '../jwt/jwt.constants';
-import { JwtService } from '@nestjs/jwt';
-import { TokenExpiredError } from 'jsonwebtoken';
+} from '../auth.exceptions';
+import { Handler } from '@simple-auth/core';
+import {
+  EXPIRED_JWT_REFRESH,
+  INTERNAL_AUTH_ERROR,
+  INVALID_JWT_REFRESH,
+  MALFORMED_JWT_REFRESH,
+  MISSING_JWT_REFRESH,
+} from '@simple-auth/types';
 
 @Injectable()
 export class RefreshStrategy extends PassportStrategy(Strategy, 'refresh') {
   constructor(
-    @Inject(AUTH_MODULE_OPTIONS)
-    private readonly authOptions: AuthOptions<Express.User>,
-    @Inject(JwtRefreshService)
-    private readonly jwtService: JwtService
+    @Inject(AUTH_HANDLER)
+    private readonly authHandler: Handler<Express.User, Request, Response>
   ) {
     super();
   }
@@ -31,37 +33,36 @@ export class RefreshStrategy extends PassportStrategy(Strategy, 'refresh') {
     req: Request
   ): Promise<[Express.User | null, AuthError | null]> {
     const jwt = await this.getJwtFromCookie(req);
-    if (!jwt) return [null, new MissingJwtRefresh()];
+    const [user, error] = await this.authHandler.getUserWithRefreshJwt(jwt);
 
-    const [payload, error] = await this.getJwtPayload(jwt);
-    if (error) return [null, error];
+    if (!user) {
+      switch (error) {
+        case MISSING_JWT_REFRESH:
+          return [null, new MissingJwtRefresh()];
+        case EXPIRED_JWT_REFRESH:
+          return [null, new ExpiredJwtRefresh()];
+        case INTERNAL_AUTH_ERROR:
+          return [null, new InternalAuthError()];
+        case MALFORMED_JWT_REFRESH:
+          return [null, new MalformedJwtRefresh()];
+        case INVALID_JWT_REFRESH:
+          return [null, new InvalidJwtRefresh()];
+        default:
+          return [null, new InternalAuthError()];
+      }
+    }
 
-    if (!payload.id) return [null, new InvalidJwtRefresh()];
-
-    if (typeof payload.id !== 'string')
-      return [null, new MalformedJwtRefresh()];
-
-    const user = await this.authOptions.refresh.find(payload.id);
-    if (!user) return [null, new InvalidJwtRefresh()];
-
-    return [
-      {
-        ...user.user,
-        _REFRESH_TOKEN: payload.id,
-        _REMEMBER_ME: user.rememberMe,
-      } as Express.User,
-      null,
-    ];
+    return [user, null];
   }
 
   private async getJwtFromCookie(req: Request): Promise<string | null> {
-    const cookieName = this.authOptions.refresh.cookie.name;
-    let cookie = this.authOptions.refresh.cookie.signed
+    const cookieName = this.authHandler.options.refresh.cookie.name;
+    let cookie = this.authHandler.options.refresh.cookie.signed
       ? req.signedCookies[cookieName]
       : req.cookies[cookieName];
 
     if (!cookie) {
-      cookie = this.authOptions.refresh.cookie.signed
+      cookie = this.authHandler.options.refresh.cookie.signed
         ? req.cookies[cookieName]
         : req.signedCookies[cookieName];
     }
@@ -69,25 +70,5 @@ export class RefreshStrategy extends PassportStrategy(Strategy, 'refresh') {
     if (!cookie) return null;
 
     return cookie;
-  }
-
-  private async getJwtPayload(
-    jwt: string
-  ): Promise<[Record<string, unknown> | null, AuthError | null]> {
-    let payload;
-
-    try {
-      payload = await this.jwtService.verify(jwt, {
-        secret: this.authOptions.refresh.secret,
-        ignoreExpiration: false,
-      });
-    } catch (e) {
-      if (e instanceof TokenExpiredError)
-        return [null, new ExpiredJwtRefresh()];
-
-      return [null, new InternalAuthError()];
-    }
-
-    return [payload, null];
   }
 }
