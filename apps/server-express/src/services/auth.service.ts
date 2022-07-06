@@ -92,7 +92,6 @@ export default {
 
     return {
       user,
-      // TODO implement rememberMe
       rememberMe: twofa.rememberMe,
     };
   },
@@ -101,7 +100,6 @@ export default {
     user: Express.User,
     rememberMe: boolean
   ): Promise<void> {
-    // TODO save remember me
     TwoFaTokenStore.set(id, { id: user.id, rememberMe });
   },
   async deleteTwoFaSessionToken(id: string): Promise<void> {

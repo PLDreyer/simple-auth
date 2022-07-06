@@ -9,6 +9,7 @@ import {
   MALFORMED_JWT_SESSION,
   MISSING_JWT_SESSION,
   MULTIPLE_API_KEYS_FOUND,
+  SimpleAuthError,
 } from '@simple-auth/types';
 
 export const GeneralGuard = () => {
@@ -24,15 +25,25 @@ export const GeneralGuard = () => {
             case MALFORMED_JWT_SESSION:
             case MISSING_JWT_SESSION:
             case EXPIRED_JWT_SESSION:
-              return next(error);
+              return next(new SimpleAuthError(error));
           }
         }
 
-        return next(INTERNAL_AUTH_ERROR);
+        return next(
+          new SimpleAuthError(
+            INTERNAL_AUTH_ERROR,
+            new Error('Unhandled switch case: ' + info.join(','))
+          )
+        );
       }
 
       if (!user) {
-        return next(INTERNAL_AUTH_ERROR);
+        return next(
+          new SimpleAuthError(
+            INTERNAL_AUTH_ERROR,
+            new Error('Unhandled switch case: ' + info.join(','))
+          )
+        );
       }
 
       req.user = user;

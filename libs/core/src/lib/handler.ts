@@ -1,5 +1,5 @@
+import type { AuthOptions } from '@simple-auth/types';
 import {
-  AuthOptions,
   EXPIRED_JWT_SESSION,
   EXPIRED_JWT_REFRESH,
   INTERNAL_AUTH_ERROR,
@@ -19,7 +19,7 @@ import {
   MISSING_TWOFA_CODE,
   INVALID_TWOFA_TOKEN,
   INVALID_TWOFA_CODE,
-  TwoFaCode,
+  SimpleAuthError,
 } from '@simple-auth/types';
 import { verify, sign, TokenExpiredError } from 'jsonwebtoken';
 import { generate } from 'rand-token';
@@ -206,14 +206,7 @@ export class Handler<U extends { id: string }, I, R> {
       };
 
     if (rememberMe === undefined)
-      return {
-        success: false,
-        // TODO missing rememberMe as const
-        info: 'Missing RememberMe',
-        accessToken: undefined,
-        refreshToken: undefined,
-        rememberMe: undefined,
-      };
+      throw new SimpleAuthError(INTERNAL_AUTH_ERROR);
 
     const isValidCode = await this.authOptions.login.twoFa?.validateTwoFaCode(
       user,

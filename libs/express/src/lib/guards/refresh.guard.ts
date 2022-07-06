@@ -6,6 +6,7 @@ import {
   INVALID_JWT_REFRESH,
   MALFORMED_JWT_REFRESH,
   MISSING_JWT_REFRESH,
+  SimpleAuthError,
 } from '@simple-auth/types';
 
 export const RefreshGuard = () => {
@@ -18,12 +19,17 @@ export const RefreshGuard = () => {
           case INTERNAL_AUTH_ERROR:
           case MALFORMED_JWT_REFRESH:
           case INVALID_JWT_REFRESH:
-            return next(info);
+            return next(new SimpleAuthError(info));
         }
       }
 
       if (!user) {
-        return next(INTERNAL_AUTH_ERROR);
+        return next(
+          new SimpleAuthError(
+            INTERNAL_AUTH_ERROR,
+            new Error('Unhandled switch case: ' + info.join(','))
+          )
+        );
       }
 
       req.user = user;

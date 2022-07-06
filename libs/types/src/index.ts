@@ -10,3 +10,4 @@ export * from './lib/request';
 export * from './lib/response';
 export * from './lib/session';
 export * from './lib/twofa';
+export * from './lib/errors.exception';

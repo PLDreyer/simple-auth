@@ -35,10 +35,4 @@ export type ApiKeyOptions<U, I> = {
    * Method to find user with api key
    */
   find: ApiKeyHandler<U>['findApiKey'];
-  // TODO customResponse currently not implemented for apikeys
-  /**
-   * Custom response for api key
-   * @param req Request express request
-   */
-  customResponse?: (req: I) => Promise<unknown>;
 };

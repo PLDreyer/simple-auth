@@ -1,17 +1,16 @@
+import type { Handler } from '@simple-auth/core';
+import type { Request, Response } from 'express';
 import { Inject, Injectable } from '@nestjs/common';
 import { Strategy } from 'passport-custom';
 import { PassportStrategy } from '@nestjs/passport';
-import { Request, Response } from 'express';
-import {
-  InternalAuthError,
-  InvalidApiKey,
-  MalformedApiKey,
-  MissingApiKey,
-  MultipleApiKeysFound,
-} from '../auth.exceptions';
 import { AUTH_HANDLER } from '../constants';
-import { Handler } from '@simple-auth/core';
-import { INVALID_API_KEY, MISSING_API_KEY } from '@simple-auth/types';
+import {
+  INTERNAL_AUTH_ERROR,
+  INVALID_API_KEY,
+  MALFORMED_API_KEY,
+  MISSING_API_KEY,
+  MULTIPLE_API_KEYS_FOUND,
+} from '@simple-auth/types';
 
 @Injectable()
 export class KeyStrategy extends PassportStrategy(Strategy, 'key') {
@@ -29,50 +28,51 @@ export class KeyStrategy extends PassportStrategy(Strategy, 'key') {
   async validate(req: Request) {
     if (!this.authHandler.options.apiKey) return [null, null];
 
-    const apiKey = this.getApiKeyFromFields(req);
+    const [apiKey, apiKeyError] = this.getApiKeyFromFields(req);
+    if (apiKeyError) return [null, apiKeyError];
+
     const [user, error] = await this.authHandler.getUserWithApiKey(apiKey);
 
     if (!user) {
       switch (error) {
         case MISSING_API_KEY:
-          return [null, new MissingApiKey()];
         case INVALID_API_KEY:
-          return [null, new InvalidApiKey()];
-        default:
-          return [null, new InternalAuthError()];
+          return [null, error];
       }
+
+      return [null, INTERNAL_AUTH_ERROR];
     }
 
     return [user, null];
   }
 
-  private getApiKeyFromFields(req: Request): string | undefined {
+  private getApiKeyFromFields(req: Request): [string | null, string | null] {
     const { header, query, body } = this.authHandler.options.apiKey;
 
     for (const name of header.names) {
       const headerValue = req.header(name);
 
       if (headerValue && headerValue.length > 1)
-        throw new MultipleApiKeysFound();
+        return [undefined, MULTIPLE_API_KEYS_FOUND];
 
-      if (headerValue) return headerValue[0];
+      if (headerValue) return [headerValue[0], null];
     }
 
     for (const name of query.names) {
       const queryValue = req.query[name];
 
-      if (Array.isArray(queryValue)) throw new MultipleApiKeysFound();
+      if (Array.isArray(queryValue)) return [null, MULTIPLE_API_KEYS_FOUND];
       if (typeof queryValue === 'object' || queryValue === null)
-        throw new MalformedApiKey();
+        return [null, MALFORMED_API_KEY];
 
-      if (queryValue) return queryValue;
+      if (queryValue) return [queryValue, null];
     }
 
     for (const name of body.names) {
       const bodyValue = req.body[name];
-      if (bodyValue) return bodyValue;
+      if (bodyValue) return [bodyValue, null];
     }
 
-    return undefined;
+    return [null, null];
   }
 }

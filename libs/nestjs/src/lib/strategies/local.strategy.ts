@@ -1,11 +1,11 @@
+import type { Request, Response } from 'express';
+import type { Handler } from '@simple-auth/core';
 import { Strategy } from 'passport-custom';
 import { PassportStrategy } from '@nestjs/passport';
 import { Inject, Injectable } from '@nestjs/common';
 import { AUTH_HANDLER } from '../constants';
-import { InternalAuthError, MissingUserCredentials } from '../auth.exceptions';
-import { Request, Response } from 'express';
-import { Handler } from '@simple-auth/core';
 import {
+  INTERNAL_AUTH_ERROR,
   INVALID_USER_CREDENTIALS,
   MISSING_USER_CREDENTIALS,
 } from '@simple-auth/types';
@@ -27,12 +27,11 @@ export class LocalStrategy extends PassportStrategy(Strategy, 'local') {
     if (!user) {
       switch (error) {
         case MISSING_USER_CREDENTIALS:
-          return [null, new MissingUserCredentials()];
         case INVALID_USER_CREDENTIALS:
-          return [null, new MissingUserCredentials()];
-        default:
-          return [null, new InternalAuthError()];
+          return [null, error];
       }
+
+      return [null, INTERNAL_AUTH_ERROR];
     }
 
     return [user, null];

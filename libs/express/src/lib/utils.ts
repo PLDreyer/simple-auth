@@ -3,21 +3,25 @@ import type { Handler } from '@simple-auth/core';
 import type { AuthOptions } from '@simple-auth/types';
 import { AUTH_HANDLER } from './constants';
 import {
+  INTERNAL_AUTH_ERROR,
   MALFORMED_API_KEY,
   MISSING_API_KEY,
   MULTIPLE_API_KEYS_FOUND,
+  SimpleAuthError,
 } from '@simple-auth/types';
 
 export const extractHandler = (
   app: Application
 ): Handler<Express.User, Request, Response> => {
   const handler = app.get(AUTH_HANDLER);
-  // TODO implement error
-  if (!handler) throw new Error('HANDLER IS MISSING');
+  if (!handler)
+    throw new SimpleAuthError(
+      INTERNAL_AUTH_ERROR,
+      new Error("Handler is missing. Call 'init' with app.")
+    );
   return handler;
 };
 
-// TODO implement extra cookie types
 export const extractJwtFromCookie = (
   req: Request,
   cookieName: string,

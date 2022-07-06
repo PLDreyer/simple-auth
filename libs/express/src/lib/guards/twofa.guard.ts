@@ -8,6 +8,7 @@ import {
   MALFORMED_TWOFA_TOKEN,
   MISSING_TWOFA_CODE,
   MISSING_TWOFA_TOKEN,
+  SimpleAuthError,
 } from '@simple-auth/types';
 
 export const TwofaGuard = () => {
@@ -21,14 +22,17 @@ export const TwofaGuard = () => {
           case INVALID_TWOFA_CODE:
           case EXPIRED_TWOFA_TOKEN:
           case MALFORMED_TWOFA_TOKEN:
-            return next(info);
+            return next(new SimpleAuthError(info));
         }
       }
-      console.log('info: ', info);
-      console.log('errorrrr: ', error);
 
       if (!user) {
-        return next(INTERNAL_AUTH_ERROR);
+        return next(
+          new SimpleAuthError(
+            INTERNAL_AUTH_ERROR,
+            new Error('Unhandled switch case: ' + info.join(','))
+          )
+        );
       }
 
       req.user = user;

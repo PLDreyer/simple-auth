@@ -49,7 +49,6 @@ export type CookieOptions = {
    */
   secure?: boolean;
   /**
-   * // TODO implement signed description
    * Cookie signed
    */
   signed?: boolean;
